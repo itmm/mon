@@ -6,10 +6,12 @@
 
 	#include <iostream>
 
-#line 234 "index.md"
+#line 238 "index.md"
 
-	#include <termios.h>
-	#include <unistd.h>
+	#if UNIX_APP
+		#include <termios.h>
+		#include <unistd.h>
+	#endif
 
 #line 5 "index.md"
 
@@ -34,7 +36,11 @@
 		}
 	}
 	void putnl() {
-		put('\n');
+		#if UNIX_APP
+			put('\n');
+		#else
+			put("\r\n");
+		#endif
 	}
 	int get() {
 		int res { std::cin.get() };
@@ -43,13 +49,13 @@
 		return res;
 	}
 
-#line 51 "index.md"
+#line 55 "index.md"
 
 	
-#line 96 "index.md"
+#line 100 "index.md"
 
 	
-#line 105 "index.md"
+#line 109 "index.md"
 
 	static void write_hex_nibble(
 		int nibble
@@ -67,11 +73,11 @@
 		}
 	}
 
-#line 97 "index.md"
+#line 101 "index.md"
 
 	static void write_hex_byte(int byte) {
 		
-#line 125 "index.md"
+#line 129 "index.md"
 
 	if (byte >= 0 && byte <= 255) {
 		write_hex_nibble(byte >> 4);
@@ -80,17 +86,17 @@
 		put("??");
 	}
 
-#line 99 "index.md"
+#line 103 "index.md"
 
 	}
 
-#line 52 "index.md"
+#line 56 "index.md"
 
 	static void write_addr(
 		const char *addr
 	) {
 		
-#line 136 "index.md"
+#line 140 "index.md"
 
 	unsigned long value {
 		reinterpret_cast<unsigned long>(
@@ -104,17 +110,17 @@
 		);
 	}
 
-#line 56 "index.md"
+#line 60 "index.md"
 
 	}
 
-#line 152 "index.md"
+#line 156 "index.md"
 
 	void dump_hex(const char *from,
 		const char *to
 	) {
 		
-#line 173 "index.md"
+#line 177 "index.md"
 
 	put("\x1b[0E\x1b[2K");
 	constexpr int bytes_per_row { 16 };
@@ -126,7 +132,7 @@
 			write_addr(from);
 			put(": ");
 			
-#line 193 "index.md"
+#line 197 "index.md"
  {
 	int row { 0 };
 	for (; row < bytes_per_row; ++row) {
@@ -139,21 +145,21 @@
 		}
 		put(' ');
 		
-#line 226 "index.md"
+#line 230 "index.md"
 
 	if (row + 1 != bytes_per_row &&
 		row % 8 == 7
 	) { put(' '); }
 
-#line 204 "index.md"
+#line 208 "index.md"
 
 	}
 } 
-#line 183 "index.md"
+#line 187 "index.md"
 
 			put("| ");
 			
-#line 210 "index.md"
+#line 214 "index.md"
  {
 	int row { 0 };
 	for (; row < bytes_per_row; ++row) {
@@ -165,43 +171,45 @@
 			put('.');
 		}
 		
-#line 226 "index.md"
+#line 230 "index.md"
 
 	if (row + 1 != bytes_per_row &&
 		row % 8 == 7
 	) { put(' '); }
 
-#line 220 "index.md"
+#line 224 "index.md"
 
 	}
 } 
-#line 185 "index.md"
+#line 189 "index.md"
 
 			putnl();
 		}
 	}
 
-#line 156 "index.md"
+#line 160 "index.md"
 
 	}
 
-#line 241 "index.md"
+#line 247 "index.md"
 
-	class Term_Handler {
-		termios orig_;
-	public:
-		Term_Handler() {
-			tcgetattr(STDIN_FILENO, &orig_);
-			termios raw { orig_ };
-			raw.c_lflag &= ~(ECHO | ICANON);
-			tcsetattr(STDIN_FILENO, TCSAFLUSH, &raw);
-		}
-		~Term_Handler() {
-			tcsetattr(STDIN_FILENO, TCSAFLUSH, &orig_);
-		}
-	};
+	#if UNIX_APP
+		class Term_Handler {
+			termios orig_;
+		public:
+			Term_Handler() {
+				tcgetattr(STDIN_FILENO, &orig_);
+				termios raw { orig_ };
+				raw.c_lflag &= ~(ECHO | ICANON);
+				tcsetattr(STDIN_FILENO, TCSAFLUSH, &raw);
+			}
+			~Term_Handler() {
+				tcsetattr(STDIN_FILENO, TCSAFLUSH, &orig_);
+			}
+		};
+	#endif
 
-#line 265 "index.md"
+#line 275 "index.md"
 
 	void write_int(unsigned int v) {
 		if (v >= 10) {
@@ -210,7 +218,7 @@
 		put((v % 10) + '0');
 	}
 
-#line 276 "index.md"
+#line 286 "index.md"
 
 	struct Addr_State {
 		char *ref;
@@ -322,14 +330,16 @@
 
 	int main() {
 		
-#line 62 "index.md"
+#line 66 "index.md"
 
 	
-#line 259 "index.md"
+#line 267 "index.md"
  
-	Term_Handler term_handler;
+	#if UNIX_APP
+		Term_Handler term_handler;
+	#endif
 
-#line 63 "index.md"
+#line 67 "index.md"
 
 	char buffer[8 * 1024];
 	char *addr { reinterpret_cast<char *>(
@@ -346,7 +356,7 @@
 			cmd = get();
 		}
 		
-#line 162 "index.md"
+#line 166 "index.md"
 
 	if (cmd == '\n') {
 		char *from { addr };
@@ -355,7 +365,7 @@
 		continue;
 	}
 
-#line 386 "index.md"
+#line 396 "index.md"
 
 	if (cmd == 'h') {
 		int state { 1 };
@@ -404,7 +414,7 @@
 					addr = reinterpret_cast<char*>(to.value);
 					if (cmd != '\n') {
 						
-#line 86 "index.md"
+#line 90 "index.md"
 
 	put("\aunknown command ");
 	put(isprint(cmd) ? (char) cmd : '?');
@@ -412,7 +422,7 @@
 	write_hex_byte(cmd & 0xff);
 	put(')'); putnl();
 
-#line 433 "index.md"
+#line 443 "index.md"
 ;
 					}
 					break;
@@ -422,10 +432,10 @@
 		continue;
 	}
 
-#line 78 "index.md"
+#line 82 "index.md"
 
 		
-#line 86 "index.md"
+#line 90 "index.md"
 
 	put("\aunknown command ");
 	put(isprint(cmd) ? (char) cmd : '?');
@@ -433,7 +443,7 @@
 	write_hex_byte(cmd & 0xff);
 	put(')'); putnl();
 
-#line 79 "index.md"
+#line 83 "index.md"
 
 	}
 	put("quit"); putnl();

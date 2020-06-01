@@ -51,7 +51,11 @@
 <span class="in2"></span>}<br/>
 <span class="in1"></span>}<br/>
 <span class="in1"></span><span class="type">void</span> <span class="fn">putnl</span>() {<br/>
-<span class="in2"></span><span class="fn">put</span>(<span class="str">'\n'</span>);<br/>
+<span class="in2"></span><span class="keyword">#if</span> <span class="var">UNIX_APP</span><br/>
+<span class="in3"></span><span class="fn">put</span>(<span class="str">'\n'</span>);<br/>
+<span class="in2"></span><span class="keyword">#else</span><br/>
+<span class="in3"></span><span class="fn">put</span>(<span class="str">"\r\n"</span>);<br/>
+<span class="in2"></span><span class="keyword">#endif</span><br/>
 <span class="in1"></span>}<br/>
 <span class="in1"></span><span class="type">int</span> <span class="fn">get</span>() {<br/>
 <span class="in2"></span><span class="type">int</span> <span class="var">res</span> { <span class="type">std</span>::<span class="var">cin</span>.<span class="fn">get</span>() };<br/>
@@ -261,34 +265,40 @@
 <div class="page"><div class="slide"><div class="slide-nr">18</div>
 <code>
 <span class="macro">@add(<span class="name">includes</span>)</span><br/>
-<span class="in1"></span><span class="keyword">#include</span> &lt;<span class="var">termios</span>.<span class="var">h</span>&gt;<br/>
-<span class="in1"></span><span class="keyword">#include</span> &lt;<span class="var">unistd</span>.<span class="var">h</span>&gt;<br/>
+<span class="in1"></span><span class="keyword">#if</span> <span class="var">UNIX_APP</span><br/>
+<span class="in2"></span><span class="keyword">#include</span> &lt;<span class="var">termios</span>.<span class="var">h</span>&gt;<br/>
+<span class="in2"></span><span class="keyword">#include</span> &lt;<span class="var">unistd</span>.<span class="var">h</span>&gt;<br/>
+<span class="in1"></span><span class="keyword">#endif</span><br/>
 <span class="macro">@end(<span class="name">includes</span>)</span><br/>
 </code></div>
 </div>
 <div class="page"><div class="slide"><div class="slide-nr">19</div>
 <code>
 <span class="macro">@add(<span class="name">globals</span>)</span><br/>
-<span class="in1"></span><span class="keyword">class</span> <span class="type">Term_Handler</span> {<br/>
-<span class="in2"></span><span class="var">termios</span> <span class="var">orig_</span>;<br/>
-<span class="in1"></span><span class="keyword">public</span>:<br/>
-<span class="in2"></span><span class="fn">Term_Handler</span>() {<br/>
-<span class="in3"></span><span class="fn">tcgetattr</span>(<span class="var">STDIN_FILENO</span>, &amp;<span class="var">orig_</span>);<br/>
-<span class="in3"></span><span class="var">termios</span> <span class="var">raw</span> { <span class="var">orig_</span> };<br/>
-<span class="in3"></span><span class="var">raw</span>.<span class="var">c_lflag</span> &amp;= ~(<span class="var">ECHO</span> | <span class="var">ICANON</span>);<br/>
-<span class="in3"></span><span class="fn">tcsetattr</span>(<span class="var">STDIN_FILENO</span>, <span class="var">TCSAFLUSH</span>, &amp;<span class="var">raw</span>);<br/>
-<span class="in2"></span>}<br/>
-<span class="in2"></span>~<span class="fn">Term_Handler</span>() {<br/>
-<span class="in3"></span><span class="fn">tcsetattr</span>(<span class="var">STDIN_FILENO</span>, <span class="var">TCSAFLUSH</span>, &amp;<span class="var">orig_</span>);<br/>
-<span class="in2"></span>}<br/>
-<span class="in1"></span>};<br/>
+<span class="in1"></span><span class="keyword">#if</span> <span class="var">UNIX_APP</span><br/>
+<span class="in2"></span><span class="keyword">class</span> <span class="type">Term_Handler</span> {<br/>
+<span class="in3"></span><span class="var">termios</span> <span class="var">orig_</span>;<br/>
+<span class="in2"></span><span class="keyword">public</span>:<br/>
+<span class="in3"></span><span class="fn">Term_Handler</span>() {<br/>
+<span class="in4"></span><span class="fn">tcgetattr</span>(<span class="var">STDIN_FILENO</span>, &amp;<span class="var">orig_</span>);<br/>
+<span class="in4"></span><span class="var">termios</span> <span class="var">raw</span> { <span class="var">orig_</span> };<br/>
+<span class="in4"></span><span class="var">raw</span>.<span class="var">c_lflag</span> &amp;= ~(<span class="var">ECHO</span> | <span class="var">ICANON</span>);<br/>
+<span class="in4"></span><span class="fn">tcsetattr</span>(<span class="var">STDIN_FILENO</span>, <span class="var">TCSAFLUSH</span>, &amp;<span class="var">raw</span>);<br/>
+<span class="in3"></span>}<br/>
+<span class="in3"></span>~<span class="fn">Term_Handler</span>() {<br/>
+<span class="in4"></span><span class="fn">tcsetattr</span>(<span class="var">STDIN_FILENO</span>, <span class="var">TCSAFLUSH</span>, &amp;<span class="var">orig_</span>);<br/>
+<span class="in3"></span>}<br/>
+<span class="in2"></span>};<br/>
+<span class="in1"></span><span class="keyword">#endif</span><br/>
 <span class="macro">@end(<span class="name">globals</span>)</span><br/>
 </code></div>
 </div>
 <div class="page"><div class="slide"><div class="slide-nr">20</div>
 <code>
 <span class="macro">@def(<span class="name">init terminal</span>)</span> <br/>
-<span class="in1"></span><span class="type">Term_Handler</span> <span class="var">term_handler</span>;<br/>
+<span class="in1"></span><span class="keyword">#if</span> <span class="var">UNIX_APP</span><br/>
+<span class="in2"></span><span class="type">Term_Handler</span> <span class="var">term_handler</span>;<br/>
+<span class="in1"></span><span class="keyword">#endif</span><br/>
 <span class="macro">@end(<span class="name">init terminal</span>)</span><br/>
 </code></div>
 </div>

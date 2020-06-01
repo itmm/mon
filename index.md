@@ -36,7 +36,11 @@
 		}
 	}
 	void putnl() {
-		put('\n');
+		#if UNIX_APP
+			put('\n');
+		#else
+			put("\r\n");
+		#endif
 	}
 	int get() {
 		int res { std::cin.get() };
@@ -232,32 +236,38 @@
 
 ```
 @add(includes)
-	#include <termios.h>
-	#include <unistd.h>
+	#if UNIX_APP
+		#include <termios.h>
+		#include <unistd.h>
+	#endif
 @end(includes)
 ```
 
 ```
 @add(globals)
-	class Term_Handler {
-		termios orig_;
-	public:
-		Term_Handler() {
-			tcgetattr(STDIN_FILENO, &orig_);
-			termios raw { orig_ };
-			raw.c_lflag &= ~(ECHO | ICANON);
-			tcsetattr(STDIN_FILENO, TCSAFLUSH, &raw);
-		}
-		~Term_Handler() {
-			tcsetattr(STDIN_FILENO, TCSAFLUSH, &orig_);
-		}
-	};
+	#if UNIX_APP
+		class Term_Handler {
+			termios orig_;
+		public:
+			Term_Handler() {
+				tcgetattr(STDIN_FILENO, &orig_);
+				termios raw { orig_ };
+				raw.c_lflag &= ~(ECHO | ICANON);
+				tcsetattr(STDIN_FILENO, TCSAFLUSH, &raw);
+			}
+			~Term_Handler() {
+				tcsetattr(STDIN_FILENO, TCSAFLUSH, &orig_);
+			}
+		};
+	#endif
 @end(globals)
 ```
 
 ```
 @def(init terminal) 
-	Term_Handler term_handler;
+	#if UNIX_APP
+		Term_Handler term_handler;
+	#endif
 @end(init terminal)
 ```
 
