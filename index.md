@@ -35,8 +35,14 @@
 			}
 		}
 	}
+	void putnl() {
+		put('\n');
+	}
 	int get() {
-		return std::cin.get();
+		int res { std::cin.get() };
+		if (res == 0x04) { res = EOF; }
+		if (res == '\r') { res = '\n'; }
+		return res;
 	}
 @end(globals)
 ```
@@ -59,22 +65,31 @@
 	char *addr { reinterpret_cast<char *>(
 		buffer
 	) };
-	for (;;) {
+	int cmd { 0 };
+	while (cmd != EOF) {
 		write_addr(addr);
 		put("> ");
-		int cmd { get() };
-		if (cmd == 0x04 || cmd == EOF) { 
-			put("quit\n");
-			break;
+		cmd = get();
+		if (cmd == EOF) { break; }
+		while (cmd == 0x7f) {
+			put('\a');
+			cmd = get();
 		}
 		@put(command switch)
-		put("unknown command ");
-		put(isprint(cmd) ? (char) cmd : '?');
-		put(" (");
-		write_hex_byte(cmd & 0xff);
-		put(")\n");
+		@mul(unknown cmd)
 	}
+	put("quit"); putnl();
 @end(main)
+```
+
+```
+@def(unknown cmd)
+	put("\aunknown command ");
+	put(isprint(cmd) ? (char) cmd : '?');
+	put(" (");
+	write_hex_byte(cmd & 0xff);
+	put(')'); putnl();
+@end(unknown cmd)
 ```
 
 ```
@@ -145,7 +160,7 @@
 
 ```
 @def(command switch)
-	if (cmd == '\n' || cmd == '\r') {
+	if (cmd == '\n') {
 		char *from { addr };
 		addr += 8 * 16;
 		dump_hex(from, addr);
@@ -168,7 +183,7 @@
 			@put(dump hex part)
 			put("| ");
 			@put(dump text part)
-			put('\n');
+			putnl();
 		}
 	}
 @end(dump hex)
@@ -244,5 +259,185 @@
 @def(init terminal) 
 	Term_Handler term_handler;
 @end(init terminal)
+```
+
+```
+@add(globals)
+	void write_int(unsigned int v) {
+		if (v >= 10) {
+			write_int(v/10);
+		}
+		put((v % 10) + '0');
+	}
+@end(globals)
+```
+
+```
+@add(globals)
+	struct Addr_State {
+		char *ref;
+		bool relative { false };
+		bool negative { false };
+		unsigned long value { 0 };
+		unsigned digits { 0 };
+		char *get(int &cmd) {
+			if (cmd == EOF || cmd == '\n' || cmd == '.' || cmd == ' ') {
+				relative = negative = false;
+				value = reinterpret_cast<unsigned long>(ref);
+				digits = 0;
+			}
+
+			bool done { false };
+			for (;;) {
+				switch (cmd) {
+					case 0x7f:
+						if (! digits) {
+							if (relative) {
+								put("\x1b[1D\x1b[K");
+								relative = negative = false;
+								break;
+							}
+							return nullptr;
+						}
+						--digits;
+						put("\x1b[1D\x1b[K");
+						value = value >> 4;
+						break;
+					case '+':
+						if (digits || relative) { done = true; break; }
+						put('+');
+						relative = true;
+						break;
+					case '-':
+						if (digits || relative) { done = true; break; }
+						put('-');
+						relative = true;
+						negative = true;
+						break;
+					case '0': case '1': case '2': case '3': case '4':
+					case '5': case '6': case '7': case '8': case '9':
+					case 'a': case 'b': case 'c': case 'd': case 'e':
+					case 'f': {
+						if (! value) {
+							if (digits) {
+								put("\x1b[");
+								write_int(digits);
+								put("D\x1b[K");
+								digits = 0;
+							}
+						}
+						int v;
+						if (cmd >= '0' && cmd <= '9') {
+							v = cmd - '0';
+						} else {
+							v = cmd - 'a' + 10;
+						}
+						if (digits < 2 * sizeof(unsigned long)) {
+							++digits;
+							value = value * 16 + v;
+							put(cmd);
+						} else { put('\a'); }
+						break;
+					}
+					default:
+						done = true;
+						break;
+				}
+				if (done) { break; }
+				cmd = ::get();
+			}
+			char *res;
+			auto r { reinterpret_cast<unsigned long>(ref) };
+			if (! relative) {
+				res = reinterpret_cast<char *>(value);
+			} else if (negative) {
+				if (value > r) {
+					put('\a');
+					res = nullptr;
+				} else {
+					res = reinterpret_cast<char *>(r - value);
+				}
+			} else {
+				unsigned long mx { ~0ul };
+				if (mx - value < r) {
+					put('\a');
+					res = reinterpret_cast<char *>(mx);
+				} else {
+					res = reinterpret_cast<char *>(r + value);
+				}
+			}
+			if (digits + (relative ? 1 : 0)) {
+				put("\x1b[");
+				write_int(digits + (relative ? 1 : 0));
+				put("D\x1b[K");
+			}
+			write_addr(res);
+			value = reinterpret_cast<unsigned long>(res);
+			relative = negative = false;
+			digits = sizeof(unsigned long) * 2;
+
+			return res;
+		}
+	};
+@end(globals)
+```
+
+```
+@add(command switch)
+	if (cmd == 'h') {
+		int state { 1 };
+		put("hex ");
+		cmd = get();
+		Addr_State from;
+		Addr_State to;
+		from.ref = addr;
+		for (;;) {
+			if (state == 1) {
+				if (cmd == 0x7f) {
+					put("\x1b[0E\x1b[2K");
+					break;
+				}
+				state = 2;
+			}
+			if (state == 2) {
+				from.get(cmd);
+				if (cmd == 0x7f) {
+					state = 1;
+				} else {
+					to.ref = reinterpret_cast<char *>(from.value);
+					state = 3;
+				}
+			}
+			if (state == 3) {
+				if (cmd == 0x7f) {
+					put("\x1b[4D\x1b[K");
+					cmd = get();
+					state = 2;
+				} else {
+					put(" .. ");
+					if (cmd == '.') {
+						cmd = get();
+					}
+					state = 4;
+				}
+			}
+			if (state == 4) {
+				to.get(cmd);
+				if (cmd == 0x7f) {
+					state = 3;
+				} else {
+					putnl();
+					dump_hex(reinterpret_cast<char*>(from.value), reinterpret_cast<char*>(to.value));
+					addr = reinterpret_cast<char*>(to.value);
+					if (cmd != '\n') {
+						@mul(unknown cmd);
+					}
+					break;
+				}
+			}
+		}
+		continue;
+	}
+@end(command switch)
 ```
 
