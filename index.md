@@ -37,13 +37,6 @@
 			uart[tx_data] = ch;
 		#endif
 	}
-	void put(const char *begin, const char *end) {
-		if (begin && begin < end) {
-			while (begin != end) {
-				put(*begin++);
-			}
-		}
-	}
 	void put(const char *begin) {
 		if (begin) {
 			while (*begin) {
@@ -78,21 +71,33 @@
 
 ```
 @add(globals)
+	using ulong = unsigned long;
 	@put(needed by write addr)
-	static void write_addr(
-		const char *addr
-	) {
+	static void write_addr(ulong addr) {
 		@put(write addr)
 	}
 @end(globals)
 ```
 
 ```
+@add(globals)
+	#if ! UNIX_APP
+		extern "C" ulong _sp;
+	#endif
+@end(globals)
+```
+
+```
 @def(main)
 	@put(init terminal)
-	char *addr { reinterpret_cast<char *>(
-		write_addr
+	ulong start { reinterpret_cast<ulong>(
+	#if UNIX_APP
+			write_addr
+	#else
+			&_sp
+	#endif
 	) };
+	ulong addr { start };
 	int cmd { 0 };
 	while (cmd != EOF) {
 		write_addr(addr);
@@ -162,15 +167,10 @@
 
 ```
 @def(write addr)
-	unsigned long value {
-		reinterpret_cast<unsigned long>(
-			addr
-		)
-	};
-	int shift { (sizeof(long) - 1) * 8 };
+	int shift { (sizeof(ulong) - 1) * 8 };
 	for (; shift >= 0; shift -= 8) {
 		write_hex_byte(
-			(value >> shift) & 0xff
+			(addr >> shift) & 0xff
 		);
 	}
 @end(write addr)
@@ -178,9 +178,9 @@
 
 ```
 @add(globals)
-	void dump_hex(const char *from,
-		const char *to
-	) {
+	constexpr int bytes_per_row { 16 };
+	constexpr int default_rows { 8 };
+	void dump_hex(ulong from, ulong to) {
 		@put(dump hex)
 	}
 @end(globals)
@@ -189,8 +189,9 @@
 ```
 @def(command switch)
 	if (cmd == '\n') {
-		char *from { addr };
-		addr += 8 * 16;
+		ulong from { addr };
+		addr += default_rows *
+			bytes_per_row;
 		dump_hex(from, addr);
 		continue;
 	}
@@ -200,7 +201,6 @@
 ```
 @def(dump hex)
 	put("\x1b[0E\x1b[2K");
-	constexpr int bytes_per_row { 16 };
 	if (from && from < to) {
 		for (
 			; from < to;
@@ -208,6 +208,7 @@
 		) {
 			write_addr(from);
 			put(": ");
+			auto addr { reinterpret_cast<const char *>(from) };
 			@put(dump hex part)
 			put("| ");
 			@put(dump text part)
@@ -223,7 +224,7 @@
 	for (; row < bytes_per_row; ++row) {
 		if (from + row < to) {
 			write_hex_byte(
-				from[row] & 0xff
+				addr[row] & 0xff
 			);
 		} else {
 			put("  ");
@@ -240,8 +241,8 @@
 	for (; row < bytes_per_row; ++row) {
 		if (from + row >= to) {
 			put(' ');
-		} else if (isprint(from[row])) {
-			put(from[row]);
+		} else if (isprint(addr[row])) {
+			put(addr[row]);
 		} else {
 			put('.');
 		}
@@ -316,18 +317,13 @@
 ```
 @add(globals)
 	struct Addr_State {
-		char *ref;
+		ulong ref;
+		ulong dflt;
 		bool relative { false };
 		bool negative { false };
-		unsigned long value { 0 };
+		ulong value { 0 };
 		unsigned digits { 0 };
-		char *get(int &cmd) {
-			if (cmd == EOF || cmd == '\n' || cmd == '.' || cmd == ' ') {
-				relative = negative = false;
-				value = reinterpret_cast<unsigned long>(ref);
-				digits = 0;
-			}
-
+		ulong get(int &cmd) {
 			bool done { false };
 			for (;;) {
 				switch (cmd) {
@@ -338,7 +334,7 @@
 								relative = negative = false;
 								break;
 							}
-							return nullptr;
+							return 0;
 						}
 						--digits;
 						put("\x1b[1D\x1b[K");
@@ -373,7 +369,7 @@
 						} else {
 							v = cmd - 'a' + 10;
 						}
-						if (digits < 2 * sizeof(unsigned long)) {
+						if (digits < 2 * sizeof(ulong)) {
 							++digits;
 							value = value * 16 + v;
 							put(cmd);
@@ -387,24 +383,26 @@
 				if (done) { break; }
 				cmd = ::get();
 			}
-			char *res;
-			auto r { reinterpret_cast<unsigned long>(ref) };
+			ulong res;
 			if (! relative) {
-				res = reinterpret_cast<char *>(value);
+				if (! digits) {
+					value = dflt;
+				}
+				res = value;
 			} else if (negative) {
-				if (value > r) {
+				if (value > ref) {
 					put('\a');
-					res = nullptr;
+					res = 0;
 				} else {
-					res = reinterpret_cast<char *>(r - value);
+					res = ref - value;
 				}
 			} else {
-				unsigned long mx { ~0ul };
-				if (mx - value < r) {
+				ulong mx { ~0ul };
+				if (mx - value < ref) {
 					put('\a');
-					res = reinterpret_cast<char *>(mx);
+					res = mx;
 				} else {
-					res = reinterpret_cast<char *>(r + value);
+					res = ref + value;
 				}
 			}
 			if (digits + (relative ? 1 : 0)) {
@@ -413,7 +411,7 @@
 				put("D\x1b[K");
 			}
 			write_addr(res);
-			value = reinterpret_cast<unsigned long>(res);
+			value = res;
 			relative = negative = false;
 			digits = sizeof(unsigned long) * 2;
 
@@ -432,6 +430,7 @@
 		Addr_State from;
 		Addr_State to;
 		from.ref = addr;
+		from.dflt = addr;
 		for (;;) {
 			if (state == 1) {
 				if (cmd == 0x7f) {
@@ -445,7 +444,8 @@
 				if (cmd == 0x7f) {
 					state = 1;
 				} else {
-					to.ref = reinterpret_cast<char *>(from.value);
+					to.ref = from.value;
+					to.dflt = from.value + bytes_per_row * default_rows;
 					state = 3;
 				}
 			}
@@ -467,13 +467,19 @@
 				if (cmd == 0x7f) {
 					state = 3;
 				} else {
-					putnl();
-					dump_hex(reinterpret_cast<char*>(from.value), reinterpret_cast<char*>(to.value));
-					addr = reinterpret_cast<char*>(to.value);
-					if (cmd != '\n') {
-						@mul(unknown cmd);
+					if (cmd == '\n') {
+						if (from.value <= to.value) {
+							putnl();
+							dump_hex(from.value, to.value);
+							addr = to.value;
+						} else {
+							put('\a'); putnl();
+						}
+						break;
+					} else {
+						put('\a');
+						cmd = get();
 					}
-					break;
 				}
 			}
 		}
@@ -482,3 +488,12 @@
 @end(command switch)
 ```
 
+```
+@add(command switch)
+	if (cmd == 'x') {
+		put("reset to start"); putnl();
+		addr = start;
+		continue;
+	}
+@end(command switch)
+```
