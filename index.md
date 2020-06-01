@@ -44,7 +44,9 @@
 	}
 	int get() {
 		int res { std::cin.get() };
-		if (res == 0x04) { res = EOF; }
+		#if UNIX_APP
+			if (res == 0x04) { res = EOF; }
+		#endif
 		if (res == '\r') { res = '\n'; }
 		return res;
 	}
@@ -394,9 +396,9 @@
 
 ```
 @add(command switch)
-	if (cmd == 'h') {
+	if (cmd == 'm') {
 		int state { 1 };
-		put("hex ");
+		put("memory ");
 		cmd = get();
 		Addr_State from;
 		Addr_State to;

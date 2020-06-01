@@ -59,7 +59,9 @@
 <span class="in1"></span>}<br/>
 <span class="in1"></span><span class="type">int</span> <span class="fn">get</span>() {<br/>
 <span class="in2"></span><span class="type">int</span> <span class="var">res</span> { <span class="type">std</span>::<span class="var">cin</span>.<span class="fn">get</span>() };<br/>
-<span class="in2"></span><span class="keyword">if</span> (<span class="var">res</span> == <span class="num">0x04</span>) { <span class="var">res</span> = <span class="num">EOF</span>; }<br/>
+<span class="in2"></span><span class="keyword">#if</span> <span class="var">UNIX_APP</span><br/>
+<span class="in3"></span><span class="keyword">if</span> (<span class="var">res</span> == <span class="num">0x04</span>) { <span class="var">res</span> = <span class="num">EOF</span>; }<br/>
+<span class="in2"></span><span class="keyword">#endif</span><br/>
 <span class="in2"></span><span class="keyword">if</span> (<span class="var">res</span> == <span class="str">'\r'</span>) { <span class="var">res</span> = <span class="str">'\n'</span>; }<br/>
 <span class="in2"></span><span class="keyword">return</span> <span class="var">res</span>;<br/>
 <span class="in1"></span>}<br/>
@@ -428,9 +430,9 @@
 <div class="page"><div class="slide"><div class="slide-nr">23</div>
 <code>
 <span class="macro">@add(<span class="name">command switch</span>)</span><br/>
-<span class="in1"></span><span class="keyword">if</span> (<span class="var">cmd</span> == <span class="str">'h'</span>) {<br/>
+<span class="in1"></span><span class="keyword">if</span> (<span class="var">cmd</span> == <span class="str">'m'</span>) {<br/>
 <span class="in2"></span><span class="type">int</span> <span class="var">state</span> { <span class="num">1</span> };<br/>
-<span class="in2"></span><span class="fn">put</span>(<span class="str">"hex "</span>);<br/>
+<span class="in2"></span><span class="fn">put</span>(<span class="str">"memory "</span>);<br/>
 <span class="in2"></span><span class="var">cmd</span> = <span class="fn">get</span>();<br/>
 <span class="in2"></span><span class="type">Addr_State</span> <span class="var">from</span>;<br/>
 <span class="in2"></span><span class="type">Addr_State</span> <span class="var">to</span>;<br/>
