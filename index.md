@@ -54,19 +54,25 @@
 
 ```
 @def(main)
+	@put(init terminal)
+	char buffer[8 * 1024];
 	char *addr { reinterpret_cast<char *>(
-		write_addr
+		buffer
 	) };
 	for (;;) {
 		write_addr(addr);
 		put("> ");
 		int cmd { get() };
-		if (cmd == EOF) { 
+		if (cmd == 0x04 || cmd == EOF) { 
 			put("quit\n");
 			break;
 		}
 		@put(command switch)
-		put("unknown command\n");
+		put("unknown command ");
+		put(isprint(cmd) ? (char) cmd : '?');
+		put(" (");
+		write_hex_byte(cmd & 0xff);
+		put(")\n");
 	}
 @end(main)
 ```
@@ -113,10 +119,9 @@
 
 ```
 @def(write addr)
-	char buffer[8 * 1024];
 	unsigned long value {
 		reinterpret_cast<unsigned long>(
-			buffer
+			addr
 		)
 	};
 	int shift { (sizeof(long) - 1) * 8 };
@@ -129,9 +134,21 @@
 ```
 
 ```
+@add(globals)
+	void dump_hex(const char *from,
+		const char *to
+	) {
+		@put(dump hex)
+	}
+@end(globals)
+```
+
+```
 @def(command switch)
 	if (cmd == '\n' || cmd == '\r') {
-		@put(dump hex)
+		char *from { addr };
+		addr += 8 * 16;
+		dump_hex(from, addr);
 		continue;
 	}
 @end(command switch)
@@ -139,19 +156,20 @@
 
 ```
 @def(dump hex)
-	for (
-		int lines { 8 }; lines; --lines
-	) {
-		constexpr int bytes_per_row {
-			16
-		};
-		write_addr(addr);
-		put(": ");
-		@put(dump hex part)
-		put("| ");
-		@put(dump text part)
-		put('\n');
-		addr += bytes_per_row;
+	put("\x1b[0E\x1b[2K");
+	constexpr int bytes_per_row { 16 };
+	if (from && from < to) {
+		for (
+			; from < to;
+			from += bytes_per_row
+		) {
+			write_addr(from);
+			put(": ");
+			@put(dump hex part)
+			put("| ");
+			@put(dump text part)
+			put('\n');
+		}
 	}
 @end(dump hex)
 ```
@@ -160,7 +178,13 @@
 @def(dump hex part) {
 	int row { 0 };
 	for (; row < bytes_per_row; ++row) {
-		write_hex_byte(addr[row] & 0xff);
+		if (from + row < to) {
+			write_hex_byte(
+				from[row] & 0xff
+			);
+		} else {
+			put("  ");
+		}
 		put(' ');
 		@mul(pad dump)
 	}
@@ -171,8 +195,10 @@
 @def(dump text part) {
 	int row { 0 };
 	for (; row < bytes_per_row; ++row) {
-		if (isprint(addr[row])) {
-			put(addr[row]);
+		if (from + row >= to) {
+			put(' ');
+		} else if (isprint(from[row])) {
+			put(from[row]);
 		} else {
 			put('.');
 		}
@@ -188,3 +214,35 @@
 	) { put(' '); }
 @end(pad dump)
 ```
+
+```
+@add(includes)
+	#include <termios.h>
+	#include <unistd.h>
+@end(includes)
+```
+
+```
+@add(globals)
+	class Term_Handler {
+		termios orig_;
+	public:
+		Term_Handler() {
+			tcgetattr(STDIN_FILENO, &orig_);
+			termios raw { orig_ };
+			raw.c_lflag &= ~(ECHO | ICANON);
+			tcsetattr(STDIN_FILENO, TCSAFLUSH, &raw);
+		}
+		~Term_Handler() {
+			tcsetattr(STDIN_FILENO, TCSAFLUSH, &orig_);
+		}
+	};
+@end(globals)
+```
+
+```
+@def(init terminal) 
+	Term_Handler term_handler;
+@end(init terminal)
+```
+
