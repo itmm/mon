@@ -33,6 +33,32 @@
 <div class="page"><div class="slide"><div class="slide-nr">4</div>
 <code>
 <span class="macro">@def(<span class="name">globals</span>)</span><br/>
+<span class="in1"></span><span class="type">void</span> <span class="fn">put</span>(<span class="type">char</span> <span class="var">ch</span>) {<br/>
+<span class="in2"></span><span class="type">std</span>::<span class="var">cout</span>.<span class="fn">put</span>(<span class="var">ch</span>);<br/>
+<span class="in1"></span>}<br/>
+<span class="in1"></span><span class="type">void</span> <span class="fn">put</span>(<span class="type">const</span> <span class="type">char</span> *<span class="var">begin</span>, <span class="type">const</span> <span class="type">char</span> *<span class="var">end</span>) {<br/>
+<span class="in2"></span><span class="keyword">if</span> (<span class="var">begin</span> &amp;&amp; <span class="var">begin</span> &lt; <span class="var">end</span>) {<br/>
+<span class="in3"></span><span class="keyword">while</span> (<span class="var">begin</span> != <span class="var">end</span>) {<br/>
+<span class="in4"></span><span class="fn">put</span>(*<span class="var">begin</span>++);<br/>
+<span class="in3"></span>}<br/>
+<span class="in2"></span>}<br/>
+<span class="in1"></span>}<br/>
+<span class="in1"></span><span class="type">void</span> <span class="fn">put</span>(<span class="type">const</span> <span class="type">char</span> *<span class="var">begin</span>) {<br/>
+<span class="in2"></span><span class="keyword">if</span> (<span class="var">begin</span>) {<br/>
+<span class="in3"></span><span class="keyword">while</span> (*<span class="var">begin</span>) {<br/>
+<span class="in4"></span><span class="fn">put</span>(*<span class="var">begin</span>++);<br/>
+<span class="in3"></span>}<br/>
+<span class="in2"></span>}<br/>
+<span class="in1"></span>}<br/>
+<span class="in1"></span><span class="type">int</span> <span class="fn">get</span>() {<br/>
+<span class="in2"></span><span class="keyword">return</span> <span class="type">std</span>::<span class="var">cin</span>.<span class="fn">get</span>();<br/>
+<span class="in1"></span>}<br/>
+<span class="macro">@end(<span class="name">globals</span>)</span><br/>
+</code></div>
+</div>
+<div class="page"><div class="slide"><div class="slide-nr">5</div>
+<code>
+<span class="macro">@add(<span class="name">globals</span>)</span><br/>
 <span class="in1"></span><span class="macro">@put(<span class="name">needed by write addr</span>)</span><br/>
 <span class="in1"></span><span class="keyword">static</span> <span class="type">void</span> <span class="fn">write_addr</span>(<br/>
 <span class="in2"></span><span class="type">const</span> <span class="type">char</span> *<span class="var">addr</span><br/>
@@ -42,22 +68,27 @@
 <span class="macro">@end(<span class="name">globals</span>)</span><br/>
 </code></div>
 </div>
-<div class="page"><div class="slide"><div class="slide-nr">5</div>
+<div class="page"><div class="slide"><div class="slide-nr">6</div>
 <code>
 <span class="macro">@def(<span class="name">main</span>)</span><br/>
-<span class="in1"></span><span class="type">char</span> *<span class="var">addr</span> {<br/>
-<span class="in2"></span><span class="var">reinterpret_cast</span>&lt;<span class="type">char</span> *&gt;(<span class="var">write_addr</span>)<br/>
-<span class="in1"></span>};<br/>
+<span class="in1"></span><span class="type">char</span> *<span class="var">addr</span> { <span class="var">reinterpret_cast</span>&lt;<span class="type">char</span> *&gt;(<br/>
+<span class="in2"></span><span class="var">write_addr</span><br/>
+<span class="in1"></span>) };<br/>
 <span class="in1"></span><span class="keyword">for</span> (;;) {<br/>
 <span class="in2"></span><span class="fn">write_addr</span>(<span class="var">addr</span>);<br/>
-<span class="in2"></span><span class="type">std</span>::<span class="var">cout</span> &lt;&lt; <span class="str">"&gt; "</span>;<br/>
-<span class="in2"></span><span class="type">std</span>::<span class="var">cout</span> &lt;&lt; <span class="str">"unknown command\n"</span>;<br/>
-<span class="in2"></span><span class="keyword">break</span>;<br/>
+<span class="in2"></span><span class="fn">put</span>(<span class="str">"&gt; "</span>);<br/>
+<span class="in2"></span><span class="type">int</span> <span class="var">cmd</span> { <span class="fn">get</span>() };<br/>
+<span class="in2"></span><span class="keyword">if</span> (<span class="var">cmd</span> == <span class="num">EOF</span>) { <br/>
+<span class="in3"></span><span class="fn">put</span>(<span class="str">"quit\n"</span>);<br/>
+<span class="in3"></span><span class="keyword">break</span>;<br/>
+<span class="in2"></span>}<br/>
+<span class="in2"></span><span class="macro">@put(<span class="name">command switch</span>)</span><br/>
+<span class="in2"></span><span class="fn">put</span>(<span class="str">"unknown command\n"</span>);<br/>
 <span class="in1"></span>}<br/>
 <span class="macro">@end(<span class="name">main</span>)</span><br/>
 </code></div>
 </div>
-<div class="page"><div class="slide"><div class="slide-nr">6</div>
+<div class="page"><div class="slide"><div class="slide-nr">7</div>
 <code>
 <span class="macro">@def(<span class="name">needed by write addr</span>)</span><br/>
 <span class="in1"></span><span class="macro">@put(<span class="name">needed by write hex byte</span>)</span><br/>
@@ -67,43 +98,121 @@
 <span class="macro">@end(<span class="name">needed by write addr</span>)</span><br/>
 </code></div>
 </div>
-<div class="page"><div class="slide"><div class="slide-nr">7</div>
+<div class="page"><div class="slide"><div class="slide-nr">8</div>
 <code>
 <span class="macro">@def(<span class="name">needed by write hex byte</span>)</span><br/>
-<span class="in1"></span><span class="keyword">static</span> <span class="type">void</span> <span class="fn">write_hex_nibble</span>(<span class="type">int</span> <span class="var">nibble</span>) {<br/>
-<span class="in2"></span><span class="keyword">static</span> <span class="type">const</span> <span class="type">char</span> <span class="var">digits</span>[] = <span class="str">"0123456789abcdef"</span>;<br/>
-<span class="in2"></span><span class="fn">static_assert</span>(<span class="fn">sizeof</span>(<span class="var">digits</span>) == <span class="num">16</span> + <span class="num">1</span>);<br/>
+<span class="in1"></span><span class="keyword">static</span> <span class="type">void</span> <span class="fn">write_hex_nibble</span>(<br/>
+<span class="in2"></span><span class="type">int</span> <span class="var">nibble</span><br/>
+<span class="in1"></span>) {<br/>
+<span class="in2"></span><span class="keyword">static</span> <span class="type">const</span> <span class="type">char</span> <span class="var">digits</span>[] {<br/>
+<span class="in3"></span><span class="str">"0123456789abcdef"</span><br/>
+<span class="in2"></span>};<br/>
+<span class="in2"></span><span class="fn">static_assert</span>(<br/>
+<span class="in3"></span><span class="fn">sizeof</span>(<span class="var">digits</span>) == <span class="num">16</span> + <span class="num">1</span><br/>
+<span class="in2"></span>);<br/>
 <span class="in2"></span><span class="keyword">if</span> (<span class="var">nibble</span> &gt;= <span class="num">0</span> &amp;&amp; <span class="var">nibble</span> &lt;= <span class="num">15</span>) {<br/>
-<span class="in3"></span><span class="type">std</span>::<span class="var">cout</span> &lt;&lt; <span class="var">digits</span>[<span class="var">nibble</span>];<br/>
+<span class="in3"></span><span class="fn">put</span>(<span class="var">digits</span>[<span class="var">nibble</span>]);<br/>
 <span class="in2"></span>} <span class="keyword">else</span> {<br/>
-<span class="in3"></span><span class="type">std</span>::<span class="var">cout</span> &lt;&lt; <span class="str">'?'</span>;<br/>
+<span class="in3"></span><span class="fn">put</span>(<span class="str">'?'</span>);<br/>
 <span class="in2"></span>}<br/>
 <span class="in1"></span>}<br/>
 <span class="macro">@end(<span class="name">needed by write hex byte</span>)</span><br/>
 </code></div>
 </div>
-<div class="page"><div class="slide"><div class="slide-nr">8</div>
+<div class="page"><div class="slide"><div class="slide-nr">9</div>
 <code>
 <span class="macro">@def(<span class="name">write hex byte</span>)</span><br/>
 <span class="in1"></span><span class="keyword">if</span> (<span class="var">byte</span> &gt;= <span class="num">0</span> &amp;&amp; <span class="var">byte</span> &lt;= <span class="num">255</span>) {<br/>
 <span class="in2"></span><span class="fn">write_hex_nibble</span>(<span class="var">byte</span> &gt;&gt; <span class="num">4</span>);<br/>
 <span class="in2"></span><span class="fn">write_hex_nibble</span>(<span class="var">byte</span> &amp; <span class="num">0xf</span>);<br/>
 <span class="in1"></span>} <span class="keyword">else</span> {<br/>
-<span class="in2"></span><span class="type">std</span>::<span class="var">cout</span> &lt;&lt; <span class="str">"??"</span>;<br/>
+<span class="in2"></span><span class="fn">put</span>(<span class="str">"??"</span>);<br/>
 <span class="in1"></span>}<br/>
 <span class="macro">@end(<span class="name">write hex byte</span>)</span><br/>
 </code></div>
 </div>
-<div class="page"><div class="slide"><div class="slide-nr">9</div>
+<div class="page"><div class="slide"><div class="slide-nr">10</div>
 <code>
 <span class="macro">@def(<span class="name">write addr</span>)</span><br/>
-<span class="in1"></span><span class="type">unsigned</span> <span class="type">long</span> <span class="var">value</span> { <span class="var">reinterpret_cast</span>&lt;<span class="type">unsigned</span> <span class="type">long</span>&gt;(<span class="var">addr</span>) };<br/>
-<span class="in1"></span><span class="type">std</span>::<span class="var">cout</span> &lt;&lt; <span class="str">'$'</span>;<br/>
+<span class="in1"></span><span class="type">char</span> <span class="var">buffer</span>[<span class="num">8</span> * <span class="num">1024</span>];<br/>
+<span class="in1"></span><span class="type">unsigned</span> <span class="type">long</span> <span class="var">value</span> {<br/>
+<span class="in2"></span><span class="var">reinterpret_cast</span>&lt;<span class="type">unsigned</span> <span class="type">long</span>&gt;(<br/>
+<span class="in3"></span><span class="var">buffer</span><br/>
+<span class="in2"></span>)<br/>
+<span class="in1"></span>};<br/>
 <span class="in1"></span><span class="type">int</span> <span class="var">shift</span> { (<span class="fn">sizeof</span>(<span class="type">long</span>) - <span class="num">1</span>) * <span class="num">8</span> };<br/>
 <span class="in1"></span><span class="keyword">for</span> (; <span class="var">shift</span> &gt;= <span class="num">0</span>; <span class="var">shift</span> -= <span class="num">8</span>) {<br/>
-<span class="in2"></span><span class="fn">write_hex_byte</span>((<span class="var">value</span> &gt;&gt; <span class="var">shift</span>) &amp; <span class="num">0xff</span>);<br/>
+<span class="in2"></span><span class="fn">write_hex_byte</span>(<br/>
+<span class="in3"></span>(<span class="var">value</span> &gt;&gt; <span class="var">shift</span>) &amp; <span class="num">0xff</span><br/>
+<span class="in2"></span>);<br/>
 <span class="in1"></span>}<br/>
 <span class="macro">@end(<span class="name">write addr</span>)</span><br/>
+</code></div>
+</div>
+<div class="page"><div class="slide"><div class="slide-nr">11</div>
+<code>
+<span class="macro">@def(<span class="name">command switch</span>)</span><br/>
+<span class="in1"></span><span class="keyword">if</span> (<span class="var">cmd</span> == <span class="str">'\n'</span> || <span class="var">cmd</span> == <span class="str">'\r'</span>) {<br/>
+<span class="in2"></span><span class="macro">@put(<span class="name">dump hex</span>)</span><br/>
+<span class="in2"></span><span class="keyword">continue</span>;<br/>
+<span class="in1"></span>}<br/>
+<span class="macro">@end(<span class="name">command switch</span>)</span><br/>
+</code></div>
+</div>
+<div class="page"><div class="slide"><div class="slide-nr">12</div>
+<code>
+<span class="macro">@def(<span class="name">dump hex</span>)</span><br/>
+<span class="in1"></span><span class="keyword">for</span> (<br/>
+<span class="in2"></span><span class="type">int</span> <span class="var">lines</span> { <span class="num">8</span> }; <span class="var">lines</span>; --<span class="var">lines</span><br/>
+<span class="in1"></span>) {<br/>
+<span class="in2"></span><span class="keyword">constexpr</span> <span class="type">int</span> <span class="var">bytes_per_row</span> {<br/>
+<span class="in3"></span><span class="num">16</span><br/>
+<span class="in2"></span>};<br/>
+<span class="in2"></span><span class="fn">write_addr</span>(<span class="var">addr</span>);<br/>
+<span class="in2"></span><span class="fn">put</span>(<span class="str">": "</span>);<br/>
+<span class="in2"></span><span class="macro">@put(<span class="name">dump hex part</span>)</span><br/>
+<span class="in2"></span><span class="fn">put</span>(<span class="str">"| "</span>);<br/>
+<span class="in2"></span><span class="macro">@put(<span class="name">dump text part</span>)</span><br/>
+<span class="in2"></span><span class="fn">put</span>(<span class="str">'\n'</span>);<br/>
+<span class="in2"></span><span class="var">addr</span> += <span class="var">bytes_per_row</span>;<br/>
+<span class="in1"></span>}<br/>
+<span class="macro">@end(<span class="name">dump hex</span>)</span><br/>
+</code></div>
+</div>
+<div class="page"><div class="slide"><div class="slide-nr">13</div>
+<code>
+<span class="macro">@def(<span class="name">dump hex part</span>)</span> {<br/>
+<span class="in1"></span><span class="type">int</span> <span class="var">row</span> { <span class="num">0</span> };<br/>
+<span class="in1"></span><span class="keyword">for</span> (; <span class="var">row</span> &lt; <span class="var">bytes_per_row</span>; ++<span class="var">row</span>) {<br/>
+<span class="in2"></span><span class="fn">write_hex_byte</span>(<span class="var">addr</span>[<span class="var">row</span>] &amp; <span class="num">0xff</span>);<br/>
+<span class="in2"></span><span class="fn">put</span>(<span class="str">' '</span>);<br/>
+<span class="in2"></span><span class="macro">@mul(<span class="name">pad dump</span>)</span><br/>
+<span class="in1"></span>}<br/>
+} <span class="macro">@end(<span class="name">dump hex part</span>)</span><br/>
+</code></div>
+</div>
+<div class="page"><div class="slide"><div class="slide-nr">14</div>
+<code>
+<span class="macro">@def(<span class="name">dump text part</span>)</span> {<br/>
+<span class="in1"></span><span class="type">int</span> <span class="var">row</span> { <span class="num">0</span> };<br/>
+<span class="in1"></span><span class="keyword">for</span> (; <span class="var">row</span> &lt; <span class="var">bytes_per_row</span>; ++<span class="var">row</span>) {<br/>
+<span class="in2"></span><span class="keyword">if</span> (<span class="fn">isprint</span>(<span class="var">addr</span>[<span class="var">row</span>])) {<br/>
+<span class="in3"></span><span class="fn">put</span>(<span class="var">addr</span>[<span class="var">row</span>]);<br/>
+<span class="in2"></span>} <span class="keyword">else</span> {<br/>
+<span class="in3"></span><span class="fn">put</span>(<span class="str">'.'</span>);<br/>
+<span class="in2"></span>}<br/>
+<span class="in2"></span><span class="macro">@mul(<span class="name">pad dump</span>)</span><br/>
+<span class="in1"></span>}<br/>
+} <span class="macro">@end(<span class="name">dump text part</span>)</span><br/>
+</code></div>
+</div>
+<div class="page"><div class="slide"><div class="slide-nr">15</div>
+<code>
+<span class="macro">@def(<span class="name">pad dump</span>)</span><br/>
+<span class="in1"></span><span class="keyword">if</span> (<span class="var">row</span> + <span class="num">1</span> != <span class="var">bytes_per_row</span> &amp;&amp;<br/>
+<span class="in2"></span><span class="var">row</span> % <span class="num">8</span> == <span class="num">7</span><br/>
+<span class="in1"></span>) { <span class="fn">put</span>(<span class="str">' '</span>); }<br/>
+<span class="macro">@end(<span class="name">pad dump</span>)</span><br/>
 </code></div>
 </div>
 </body>
