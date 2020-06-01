@@ -107,9 +107,6 @@
 <code>
 <span class="macro">@def(<span class="name">main</span>)</span><br/>
 <span class="in1"></span><span class="macro">@put(<span class="name">init terminal</span>)</span><br/>
-<span class="in1"></span><span class="fn">put</span>(<span class="str">"***"</span>); <span class="fn">putnl</span>();<br/>
-<span class="in1"></span><span class="fn">put</span>(<span class="str">"*** Monitor"</span>); <span class="fn">putnl</span>();<br/>
-<span class="in1"></span><span class="fn">put</span>(<span class="str">"***"</span>); <span class="fn">putnl</span>(); <span class="fn">putnl</span>();<br/>
 <span class="in1"></span><span class="type">char</span> *<span class="var">addr</span> { <span class="var">reinterpret_cast</span>&lt;<span class="type">char</span> *&gt;(<br/>
 <span class="in2"></span><span class="var">write_addr</span><br/>
 <span class="in1"></span>) };<br/>
@@ -330,6 +327,8 @@
 <span class="in2"></span><span class="var">uart</span>[<span class="var">tx_control</span>] |= <span class="num">1</span>;<br/>
 <span class="in2"></span><span class="keyword">constexpr</span> <span class="type">int</span> <span class="var">rx_control</span> { <span class="num">0x03</span> };<br/>
 <span class="in2"></span><span class="var">uart</span>[<span class="var">rx_control</span>] |= <span class="num">1</span>;<br/>
+<span class="in2"></span><span class="keyword">constexpr</span> <span class="type">int</span> <span class="var">rx_data</span> { <span class="num">0x01</span> };<br/>
+<span class="in2"></span><span class="keyword">while</span> (<span class="var">uart</span>[<span class="var">rx_data</span>] &gt;= <span class="num">0</span>) {}<br/>
 <span class="in1"></span><span class="keyword">#endif</span><br/>
 <span class="macro">@end(<span class="name">init terminal</span>)</span><br/>
 </code></div>

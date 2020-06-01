@@ -90,9 +90,6 @@
 ```
 @def(main)
 	@put(init terminal)
-	put("***"); putnl();
-	put("*** Monitor"); putnl();
-	put("***"); putnl(); putnl();
 	char *addr { reinterpret_cast<char *>(
 		write_addr
 	) };
@@ -299,6 +296,8 @@
 		uart[tx_control] |= 1;
 		constexpr int rx_control { 0x03 };
 		uart[rx_control] |= 1;
+		constexpr int rx_data { 0x01 };
+		while (uart[rx_data] >= 0) {}
 	#endif
 @end(init terminal)
 ```
