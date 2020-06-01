@@ -12,14 +12,30 @@
 
 ```
 @def(includes)
-	#include <iostream>
+	#if UNIX_APP
+		#include <iostream>
+	#else
+		constexpr int EOF { -1 };
+		inline bool isprint(char ch) {
+			return ch >= ' ' && ch <= '~';
+		}
+	#endif
 @end(includes)
 ```
 
 ```
 @def(globals)
+	#if ! UNIX_APP
+		volatile int *uart { reinterpret_cast<volatile int *>(0x10013000) };
+	#endif
 	void put(char ch) {
-		std::cout.put(ch);
+		#if UNIX_APP
+			std::cout.put(ch);
+		#else
+			constexpr int tx_data { 0x00 };
+			while (uart[tx_data] < 0) {}
+			uart[tx_data] = ch;
+		#endif
 	}
 	void put(const char *begin, const char *end) {
 		if (begin && begin < end) {
@@ -43,9 +59,16 @@
 		#endif
 	}
 	int get() {
-		int res { std::cin.get() };
 		#if UNIX_APP
+			int res { std::cin.get() };
 			if (res == 0x04) { res = EOF; }
+		#else
+			constexpr int rx_data { 0x01 };
+			int res = -1;
+			while (res < 0) {
+				res = uart[rx_data];
+			}
+			res = res & 0xff;
 		#endif
 		if (res == '\r') { res = '\n'; }
 		return res;
@@ -67,9 +90,11 @@
 ```
 @def(main)
 	@put(init terminal)
-	char buffer[8 * 1024];
+	put("***"); putnl();
+	put("*** Monitor"); putnl();
+	put("***"); putnl(); putnl();
 	char *addr { reinterpret_cast<char *>(
-		buffer
+		write_addr
 	) };
 	int cmd { 0 };
 	while (cmd != EOF) {
@@ -269,6 +294,11 @@
 @def(init terminal) 
 	#if UNIX_APP
 		Term_Handler term_handler;
+	#else
+		constexpr int tx_control { 0x02 };
+		uart[tx_control] |= 1;
+		constexpr int rx_control { 0x03 };
+		uart[rx_control] |= 1;
 	#endif
 @end(init terminal)
 ```

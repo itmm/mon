@@ -1,2 +1,4 @@
 mon
 mon-riscv
+mon-riscv.hex
+*.o

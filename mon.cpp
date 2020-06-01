@@ -4,9 +4,16 @@
 	
 #line 14 "index.md"
 
-	#include <iostream>
+	#if UNIX_APP
+		#include <iostream>
+	#else
+		constexpr int EOF { -1 };
+		inline bool isprint(char ch) {
+			return ch >= ' ' && ch <= '~';
+		}
+	#endif
 
-#line 240 "index.md"
+#line 265 "index.md"
 
 	#if UNIX_APP
 		#include <termios.h>
@@ -16,10 +23,19 @@
 #line 5 "index.md"
 
 	
-#line 20 "index.md"
+#line 27 "index.md"
 
+	#if ! UNIX_APP
+		volatile int *uart { reinterpret_cast<volatile int *>(0x10013000) };
+	#endif
 	void put(char ch) {
-		std::cout.put(ch);
+		#if UNIX_APP
+			std::cout.put(ch);
+		#else
+			constexpr int tx_data { 0x00 };
+			while (uart[tx_data] < 0) {}
+			uart[tx_data] = ch;
+		#endif
 	}
 	void put(const char *begin, const char *end) {
 		if (begin && begin < end) {
@@ -43,21 +59,28 @@
 		#endif
 	}
 	int get() {
-		int res { std::cin.get() };
 		#if UNIX_APP
+			int res { std::cin.get() };
 			if (res == 0x04) { res = EOF; }
+		#else
+			constexpr int rx_data { 0x01 };
+			int res = -1;
+			while (res < 0) {
+				res = uart[rx_data];
+			}
+			res = res & 0xff;
 		#endif
 		if (res == '\r') { res = '\n'; }
 		return res;
 	}
 
-#line 57 "index.md"
+#line 80 "index.md"
 
 	
-#line 102 "index.md"
+#line 127 "index.md"
 
 	
-#line 111 "index.md"
+#line 136 "index.md"
 
 	static void write_hex_nibble(
 		int nibble
@@ -75,11 +98,11 @@
 		}
 	}
 
-#line 103 "index.md"
+#line 128 "index.md"
 
 	static void write_hex_byte(int byte) {
 		
-#line 131 "index.md"
+#line 156 "index.md"
 
 	if (byte >= 0 && byte <= 255) {
 		write_hex_nibble(byte >> 4);
@@ -88,17 +111,17 @@
 		put("??");
 	}
 
-#line 105 "index.md"
+#line 130 "index.md"
 
 	}
 
-#line 58 "index.md"
+#line 81 "index.md"
 
 	static void write_addr(
 		const char *addr
 	) {
 		
-#line 142 "index.md"
+#line 167 "index.md"
 
 	unsigned long value {
 		reinterpret_cast<unsigned long>(
@@ -112,17 +135,17 @@
 		);
 	}
 
-#line 62 "index.md"
+#line 85 "index.md"
 
 	}
 
-#line 158 "index.md"
+#line 183 "index.md"
 
 	void dump_hex(const char *from,
 		const char *to
 	) {
 		
-#line 179 "index.md"
+#line 204 "index.md"
 
 	put("\x1b[0E\x1b[2K");
 	constexpr int bytes_per_row { 16 };
@@ -134,7 +157,7 @@
 			write_addr(from);
 			put(": ");
 			
-#line 199 "index.md"
+#line 224 "index.md"
  {
 	int row { 0 };
 	for (; row < bytes_per_row; ++row) {
@@ -147,21 +170,21 @@
 		}
 		put(' ');
 		
-#line 232 "index.md"
+#line 257 "index.md"
 
 	if (row + 1 != bytes_per_row &&
 		row % 8 == 7
 	) { put(' '); }
 
-#line 210 "index.md"
+#line 235 "index.md"
 
 	}
 } 
-#line 189 "index.md"
+#line 214 "index.md"
 
 			put("| ");
 			
-#line 216 "index.md"
+#line 241 "index.md"
  {
 	int row { 0 };
 	for (; row < bytes_per_row; ++row) {
@@ -173,27 +196,27 @@
 			put('.');
 		}
 		
-#line 232 "index.md"
+#line 257 "index.md"
 
 	if (row + 1 != bytes_per_row &&
 		row % 8 == 7
 	) { put(' '); }
 
-#line 226 "index.md"
+#line 251 "index.md"
 
 	}
 } 
-#line 191 "index.md"
+#line 216 "index.md"
 
 			putnl();
 		}
 	}
 
-#line 162 "index.md"
+#line 187 "index.md"
 
 	}
 
-#line 249 "index.md"
+#line 274 "index.md"
 
 	#if UNIX_APP
 		class Term_Handler {
@@ -211,7 +234,7 @@
 		};
 	#endif
 
-#line 277 "index.md"
+#line 307 "index.md"
 
 	void write_int(unsigned int v) {
 		if (v >= 10) {
@@ -220,7 +243,7 @@
 		put((v % 10) + '0');
 	}
 
-#line 288 "index.md"
+#line 318 "index.md"
 
 	struct Addr_State {
 		char *ref;
@@ -332,20 +355,27 @@
 
 	int main() {
 		
-#line 68 "index.md"
+#line 91 "index.md"
 
 	
-#line 269 "index.md"
+#line 294 "index.md"
  
 	#if UNIX_APP
 		Term_Handler term_handler;
+	#else
+		constexpr int tx_control { 0x02 };
+		uart[tx_control] |= 1;
+		constexpr int rx_control { 0x03 };
+		uart[rx_control] |= 1;
 	#endif
 
-#line 69 "index.md"
+#line 92 "index.md"
 
-	char buffer[8 * 1024];
+	put("***"); putnl();
+	put("*** Monitor"); putnl();
+	put("***"); putnl(); putnl();
 	char *addr { reinterpret_cast<char *>(
-		buffer
+		write_addr
 	) };
 	int cmd { 0 };
 	while (cmd != EOF) {
@@ -358,7 +388,7 @@
 			cmd = get();
 		}
 		
-#line 168 "index.md"
+#line 193 "index.md"
 
 	if (cmd == '\n') {
 		char *from { addr };
@@ -367,7 +397,7 @@
 		continue;
 	}
 
-#line 398 "index.md"
+#line 428 "index.md"
 
 	if (cmd == 'm') {
 		int state { 1 };
@@ -416,7 +446,7 @@
 					addr = reinterpret_cast<char*>(to.value);
 					if (cmd != '\n') {
 						
-#line 92 "index.md"
+#line 117 "index.md"
 
 	put("\aunknown command ");
 	put(isprint(cmd) ? (char) cmd : '?');
@@ -424,7 +454,7 @@
 	write_hex_byte(cmd & 0xff);
 	put(')'); putnl();
 
-#line 445 "index.md"
+#line 475 "index.md"
 ;
 					}
 					break;
@@ -434,10 +464,10 @@
 		continue;
 	}
 
-#line 84 "index.md"
+#line 109 "index.md"
 
 		
-#line 92 "index.md"
+#line 117 "index.md"
 
 	put("\aunknown command ");
 	put(isprint(cmd) ? (char) cmd : '?');
@@ -445,7 +475,7 @@
 	write_hex_byte(cmd & 0xff);
 	put(')'); putnl();
 
-#line 85 "index.md"
+#line 110 "index.md"
 
 	}
 	put("quit"); putnl();

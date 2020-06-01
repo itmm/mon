@@ -26,15 +26,31 @@
 <div class="page"><div class="slide"><div class="slide-nr">3</div>
 <code>
 <span class="macro">@def(<span class="name">includes</span>)</span><br/>
-<span class="in1"></span><span class="keyword">#include</span> &lt;<span class="var">iostream</span>&gt;<br/>
+<span class="in1"></span><span class="keyword">#if</span> <span class="var">UNIX_APP</span><br/>
+<span class="in2"></span><span class="keyword">#include</span> &lt;<span class="var">iostream</span>&gt;<br/>
+<span class="in1"></span><span class="keyword">#else</span><br/>
+<span class="in2"></span><span class="keyword">constexpr</span> <span class="type">int</span> <span class="num">EOF</span> { -<span class="num">1</span> };<br/>
+<span class="in2"></span><span class="keyword">inline</span> <span class="type">bool</span> <span class="fn">isprint</span>(<span class="type">char</span> <span class="var">ch</span>) {<br/>
+<span class="in3"></span><span class="keyword">return</span> <span class="var">ch</span> &gt;= <span class="str">' '</span> &amp;&amp; <span class="var">ch</span> &lt;= <span class="str">'~'</span>;<br/>
+<span class="in2"></span>}<br/>
+<span class="in1"></span><span class="keyword">#endif</span><br/>
 <span class="macro">@end(<span class="name">includes</span>)</span><br/>
 </code></div>
 </div>
 <div class="page"><div class="slide"><div class="slide-nr">4</div>
 <code>
 <span class="macro">@def(<span class="name">globals</span>)</span><br/>
+<span class="in1"></span><span class="keyword">#if</span> ! <span class="var">UNIX_APP</span><br/>
+<span class="in2"></span><span class="keyword">volatile</span> <span class="type">int</span> *<span class="var">uart</span> { <span class="var">reinterpret_cast</span>&lt;<span class="keyword">volatile</span> <span class="type">int</span> *&gt;(<span class="num">0x10013000</span>) };<br/>
+<span class="in1"></span><span class="keyword">#endif</span><br/>
 <span class="in1"></span><span class="type">void</span> <span class="fn">put</span>(<span class="type">char</span> <span class="var">ch</span>) {<br/>
-<span class="in2"></span><span class="type">std</span>::<span class="var">cout</span>.<span class="fn">put</span>(<span class="var">ch</span>);<br/>
+<span class="in2"></span><span class="keyword">#if</span> <span class="var">UNIX_APP</span><br/>
+<span class="in3"></span><span class="type">std</span>::<span class="var">cout</span>.<span class="fn">put</span>(<span class="var">ch</span>);<br/>
+<span class="in2"></span><span class="keyword">#else</span><br/>
+<span class="in3"></span><span class="keyword">constexpr</span> <span class="type">int</span> <span class="var">tx_data</span> { <span class="num">0x00</span> };<br/>
+<span class="in3"></span><span class="keyword">while</span> (<span class="var">uart</span>[<span class="var">tx_data</span>] &lt; <span class="num">0</span>) {}<br/>
+<span class="in3"></span><span class="var">uart</span>[<span class="var">tx_data</span>] = <span class="var">ch</span>;<br/>
+<span class="in2"></span><span class="keyword">#endif</span><br/>
 <span class="in1"></span>}<br/>
 <span class="in1"></span><span class="type">void</span> <span class="fn">put</span>(<span class="type">const</span> <span class="type">char</span> *<span class="var">begin</span>, <span class="type">const</span> <span class="type">char</span> *<span class="var">end</span>) {<br/>
 <span class="in2"></span><span class="keyword">if</span> (<span class="var">begin</span> &amp;&amp; <span class="var">begin</span> &lt; <span class="var">end</span>) {<br/>
@@ -58,9 +74,16 @@
 <span class="in2"></span><span class="keyword">#endif</span><br/>
 <span class="in1"></span>}<br/>
 <span class="in1"></span><span class="type">int</span> <span class="fn">get</span>() {<br/>
-<span class="in2"></span><span class="type">int</span> <span class="var">res</span> { <span class="type">std</span>::<span class="var">cin</span>.<span class="fn">get</span>() };<br/>
 <span class="in2"></span><span class="keyword">#if</span> <span class="var">UNIX_APP</span><br/>
+<span class="in3"></span><span class="type">int</span> <span class="var">res</span> { <span class="type">std</span>::<span class="var">cin</span>.<span class="fn">get</span>() };<br/>
 <span class="in3"></span><span class="keyword">if</span> (<span class="var">res</span> == <span class="num">0x04</span>) { <span class="var">res</span> = <span class="num">EOF</span>; }<br/>
+<span class="in2"></span><span class="keyword">#else</span><br/>
+<span class="in3"></span><span class="keyword">constexpr</span> <span class="type">int</span> <span class="var">rx_data</span> { <span class="num">0x01</span> };<br/>
+<span class="in3"></span><span class="type">int</span> <span class="var">res</span> = -<span class="num">1</span>;<br/>
+<span class="in3"></span><span class="keyword">while</span> (<span class="var">res</span> &lt; <span class="num">0</span>) {<br/>
+<span class="in4"></span><span class="var">res</span> = <span class="var">uart</span>[<span class="var">rx_data</span>];<br/>
+<span class="in3"></span>}<br/>
+<span class="in3"></span><span class="var">res</span> = <span class="var">res</span> &amp; <span class="num">0xff</span>;<br/>
 <span class="in2"></span><span class="keyword">#endif</span><br/>
 <span class="in2"></span><span class="keyword">if</span> (<span class="var">res</span> == <span class="str">'\r'</span>) { <span class="var">res</span> = <span class="str">'\n'</span>; }<br/>
 <span class="in2"></span><span class="keyword">return</span> <span class="var">res</span>;<br/>
@@ -84,9 +107,11 @@
 <code>
 <span class="macro">@def(<span class="name">main</span>)</span><br/>
 <span class="in1"></span><span class="macro">@put(<span class="name">init terminal</span>)</span><br/>
-<span class="in1"></span><span class="type">char</span> <span class="var">buffer</span>[<span class="num">8</span> * <span class="num">1024</span>];<br/>
+<span class="in1"></span><span class="fn">put</span>(<span class="str">"***"</span>); <span class="fn">putnl</span>();<br/>
+<span class="in1"></span><span class="fn">put</span>(<span class="str">"*** Monitor"</span>); <span class="fn">putnl</span>();<br/>
+<span class="in1"></span><span class="fn">put</span>(<span class="str">"***"</span>); <span class="fn">putnl</span>(); <span class="fn">putnl</span>();<br/>
 <span class="in1"></span><span class="type">char</span> *<span class="var">addr</span> { <span class="var">reinterpret_cast</span>&lt;<span class="type">char</span> *&gt;(<br/>
-<span class="in2"></span><span class="var">buffer</span><br/>
+<span class="in2"></span><span class="var">write_addr</span><br/>
 <span class="in1"></span>) };<br/>
 <span class="in1"></span><span class="type">int</span> <span class="var">cmd</span> { <span class="num">0</span> };<br/>
 <span class="in1"></span><span class="keyword">while</span> (<span class="var">cmd</span> != <span class="num">EOF</span>) {<br/>
@@ -300,6 +325,11 @@
 <span class="macro">@def(<span class="name">init terminal</span>)</span> <br/>
 <span class="in1"></span><span class="keyword">#if</span> <span class="var">UNIX_APP</span><br/>
 <span class="in2"></span><span class="type">Term_Handler</span> <span class="var">term_handler</span>;<br/>
+<span class="in1"></span><span class="keyword">#else</span><br/>
+<span class="in2"></span><span class="keyword">constexpr</span> <span class="type">int</span> <span class="var">tx_control</span> { <span class="num">0x02</span> };<br/>
+<span class="in2"></span><span class="var">uart</span>[<span class="var">tx_control</span>] |= <span class="num">1</span>;<br/>
+<span class="in2"></span><span class="keyword">constexpr</span> <span class="type">int</span> <span class="var">rx_control</span> { <span class="num">0x03</span> };<br/>
+<span class="in2"></span><span class="var">uart</span>[<span class="var">rx_control</span>] |= <span class="num">1</span>;<br/>
 <span class="in1"></span><span class="keyword">#endif</span><br/>
 <span class="macro">@end(<span class="name">init terminal</span>)</span><br/>
 </code></div>
