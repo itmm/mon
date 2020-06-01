@@ -99,6 +99,12 @@
 	) };
 	ulong addr { start };
 	int cmd { 0 };
+	#if ! UNIX_APP
+		put("start with return"); putnl();
+		while (cmd != EOF && cmd != '\n') {
+			cmd = get();
+		}
+	#endif
 	while (cmd != EOF) {
 		write_addr(addr);
 		put("> ");
