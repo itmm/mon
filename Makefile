@@ -3,9 +3,12 @@
 HX_SRCs = $(shell hx-srcs.sh)
 CXX_SRCs = $(filter %.cpp,$(shell hx-files.sh $(HX_SRCs)))
 CXXFLAGS += -Wall -std=c++17 -O2
+CC = clang-9
+CXX = clang++-9
+LD = ld.lld-9
 TARGET = riscv32-unknown-elf
 
-all: hx_run
+all: hx_run mon mon-riscv.hex
 
 hx_run: $(HX_SRCs)
 	@echo HX
@@ -21,23 +24,27 @@ mon: $(CXX_SRCs)
 
 init.o: init.S
 	@echo AS $@
-	@$(TARGET)-gcc -Wall -O2 -c $^ -o $@
+	@$(CC) -Wall -O2 --target=riscv32 -march=rv32imac -c $^ -o $@
 
 mon-riscv.o: mon.cpp
 	@echo C++ $@
-	@$(TARGET)-g++ $(CXXFLAGS) -c $^ -o $@
+	@$(CXX) $(CXXFLAGS) -fno-exceptions --target=riscv32 -march=rv32imac -c $^ -o $@
+
+mon-riscv.s: mon.cpp
+	@echo C++ -S $@
+	@$(CXX) $(CXXFLAGS) -fno-exceptions --target=riscv32 -march=rv32imac -S $^ -o $@
 
 mon-riscv: init.o mon-riscv.o
 	@echo LD $@
-	@$(TARGET)-ld -T memory.lds $^ -o $@
+	@$(LD) -T memory.lds $^ -o $@
 
 %.hex: %
 	@echo HEX $@
-	@$(TARGET)-objcopy $^ -O ihex $@
+	@objcopy $^ -O ihex $@
 
 $(CXX_SRCs): hx_run
 
 clean:
 	@echo RM
-	@rm -f *.o $(CXX_SRCs) hx_run mon mon-riscv
+	@rm -f *.o mon-riscv.hex mon-riscv.s $(CXX_SRCs) hx_run mon mon-riscv
 
