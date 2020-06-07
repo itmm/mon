@@ -41,23 +41,10 @@
 </div>
 <div class="page"><div class="slide"><div class="slide-nr">5</div>
 <code>
-<span class="macro">@add(<span class="name">globals</span>)</span><br/>
-<span class="in1"></span><span class="keyword">#if</span> ! <span class="var">UNIX_APP</span><br/>
-<span class="in2"></span><span class="type">extern</span> <span class="str">"C"</span> <span class="var">ulong</span> <span class="var">_sp</span>;<br/>
-<span class="in1"></span><span class="keyword">#endif</span><br/>
-<span class="macro">@end(<span class="name">globals</span>)</span><br/>
-</code></div>
-</div>
-<div class="page"><div class="slide"><div class="slide-nr">6</div>
-<code>
 <span class="macro">@def(<span class="name">main</span>)</span><br/>
 <span class="in1"></span><span class="macro">@put(<span class="name">init terminal</span>)</span><br/>
 <span class="in1"></span><span class="var">ulong</span> <span class="var">start</span> { <span class="var">reinterpret_cast</span>&lt;<span class="var">ulong</span>&gt;(<br/>
-<span class="in1"></span><span class="keyword">#if</span> <span class="var">UNIX_APP</span><br/>
-<span class="in3"></span><span class="var">write_addr</span><br/>
-<span class="in1"></span><span class="keyword">#else</span><br/>
-<span class="in3"></span>&amp;<span class="var">_sp</span><br/>
-<span class="in1"></span><span class="keyword">#endif</span><br/>
+<span class="in2"></span><span class="var">write_addr</span><br/>
 <span class="in1"></span>) };<br/>
 <span class="in1"></span><span class="var">ulong</span> <span class="var">addr</span> { <span class="var">start</span> };<br/>
 <span class="in1"></span><span class="type">int</span> <span class="var">cmd</span> { <span class="num">0</span> };<br/>
@@ -83,7 +70,7 @@
 <span class="macro">@end(<span class="name">main</span>)</span><br/>
 </code></div>
 </div>
-<div class="page"><div class="slide"><div class="slide-nr">7</div>
+<div class="page"><div class="slide"><div class="slide-nr">6</div>
 <code>
 <span class="macro">@def(<span class="name">unknown cmd</span>)</span><br/>
 <span class="in1"></span><span class="fn">put</span>(<span class="str">"\aunknown command "</span>);<br/>
@@ -94,7 +81,7 @@
 <span class="macro">@end(<span class="name">unknown cmd</span>)</span><br/>
 </code></div>
 </div>
-<div class="page"><div class="slide"><div class="slide-nr">8</div>
+<div class="page"><div class="slide"><div class="slide-nr">7</div>
 <code>
 <span class="macro">@def(<span class="name">needed by write addr</span>)</span><br/>
 <span class="in1"></span><span class="macro">@put(<span class="name">needed by write hex byte</span>)</span><br/>
@@ -104,7 +91,7 @@
 <span class="macro">@end(<span class="name">needed by write addr</span>)</span><br/>
 </code></div>
 </div>
-<div class="page"><div class="slide"><div class="slide-nr">9</div>
+<div class="page"><div class="slide"><div class="slide-nr">8</div>
 <code>
 <span class="macro">@def(<span class="name">needed by write hex byte</span>)</span><br/>
 <span class="in1"></span><span class="keyword">static</span> <span class="type">void</span> <span class="fn">write_hex_nibble</span>(<br/>
@@ -125,7 +112,7 @@
 <span class="macro">@end(<span class="name">needed by write hex byte</span>)</span><br/>
 </code></div>
 </div>
-<div class="page"><div class="slide"><div class="slide-nr">10</div>
+<div class="page"><div class="slide"><div class="slide-nr">9</div>
 <code>
 <span class="macro">@def(<span class="name">write hex byte</span>)</span><br/>
 <span class="in1"></span><span class="keyword">if</span> (<span class="var">byte</span> &gt;= <span class="num">0</span> &amp;&amp; <span class="var">byte</span> &lt;= <span class="num">255</span>) {<br/>
@@ -137,7 +124,7 @@
 <span class="macro">@end(<span class="name">write hex byte</span>)</span><br/>
 </code></div>
 </div>
-<div class="page"><div class="slide"><div class="slide-nr">11</div>
+<div class="page"><div class="slide"><div class="slide-nr">10</div>
 <code>
 <span class="macro">@def(<span class="name">write addr</span>)</span><br/>
 <span class="in1"></span><span class="type">int</span> <span class="var">shift</span> { (<span class="fn">sizeof</span>(<span class="var">ulong</span>) - <span class="num">1</span>) * <span class="num">8</span> };<br/>
@@ -149,7 +136,7 @@
 <span class="macro">@end(<span class="name">write addr</span>)</span><br/>
 </code></div>
 </div>
-<div class="page"><div class="slide"><div class="slide-nr">12</div>
+<div class="page"><div class="slide"><div class="slide-nr">11</div>
 <code>
 <span class="macro">@add(<span class="name">globals</span>)</span><br/>
 <span class="in1"></span><span class="keyword">constexpr</span> <span class="type">int</span> <span class="var">bytes_per_row</span> { <span class="num">16</span> };<br/>
@@ -160,7 +147,7 @@
 <span class="macro">@end(<span class="name">globals</span>)</span><br/>
 </code></div>
 </div>
-<div class="page"><div class="slide"><div class="slide-nr">13</div>
+<div class="page"><div class="slide"><div class="slide-nr">12</div>
 <code>
 <span class="macro">@def(<span class="name">command switch</span>)</span><br/>
 <span class="in1"></span><span class="keyword">if</span> (<span class="var">cmd</span> == <span class="str">'\n'</span>) {<br/>
@@ -173,7 +160,7 @@
 <span class="macro">@end(<span class="name">command switch</span>)</span><br/>
 </code></div>
 </div>
-<div class="page"><div class="slide"><div class="slide-nr">14</div>
+<div class="page"><div class="slide"><div class="slide-nr">13</div>
 <code>
 <span class="macro">@def(<span class="name">dump hex</span>)</span><br/>
 <span class="in1"></span><span class="fn">put</span>(<span class="str">"\x1b[0E\x1b[2K"</span>);<br/>
@@ -194,7 +181,7 @@
 <span class="macro">@end(<span class="name">dump hex</span>)</span><br/>
 </code></div>
 </div>
-<div class="page"><div class="slide"><div class="slide-nr">15</div>
+<div class="page"><div class="slide"><div class="slide-nr">14</div>
 <code>
 <span class="macro">@def(<span class="name">dump hex part</span>)</span> {<br/>
 <span class="in1"></span><span class="type">int</span> <span class="var">row</span> { <span class="num">0</span> };<br/>
@@ -212,7 +199,7 @@
 } <span class="macro">@end(<span class="name">dump hex part</span>)</span><br/>
 </code></div>
 </div>
-<div class="page"><div class="slide"><div class="slide-nr">16</div>
+<div class="page"><div class="slide"><div class="slide-nr">15</div>
 <code>
 <span class="macro">@def(<span class="name">dump text part</span>)</span> {<br/>
 <span class="in1"></span><span class="type">int</span> <span class="var">row</span> { <span class="num">0</span> };<br/>
@@ -229,7 +216,7 @@
 } <span class="macro">@end(<span class="name">dump text part</span>)</span><br/>
 </code></div>
 </div>
-<div class="page"><div class="slide"><div class="slide-nr">17</div>
+<div class="page"><div class="slide"><div class="slide-nr">16</div>
 <code>
 <span class="macro">@def(<span class="name">pad dump</span>)</span><br/>
 <span class="in1"></span><span class="keyword">if</span> (<span class="var">row</span> + <span class="num">1</span> != <span class="var">bytes_per_row</span> &amp;&amp;<br/>
@@ -238,7 +225,7 @@
 <span class="macro">@end(<span class="name">pad dump</span>)</span><br/>
 </code></div>
 </div>
-<div class="page"><div class="slide"><div class="slide-nr">18</div>
+<div class="page"><div class="slide"><div class="slide-nr">17</div>
 <code>
 <span class="macro">@add(<span class="name">includes</span>)</span><br/>
 <span class="in1"></span><span class="keyword">#if</span> <span class="var">UNIX_APP</span><br/>
@@ -248,7 +235,7 @@
 <span class="macro">@end(<span class="name">includes</span>)</span><br/>
 </code></div>
 </div>
-<div class="page"><div class="slide"><div class="slide-nr">19</div>
+<div class="page"><div class="slide"><div class="slide-nr">18</div>
 <code>
 <span class="macro">@add(<span class="name">globals</span>)</span><br/>
 <span class="in1"></span><span class="keyword">#if</span> <span class="var">UNIX_APP</span><br/>
@@ -269,7 +256,7 @@
 <span class="macro">@end(<span class="name">globals</span>)</span><br/>
 </code></div>
 </div>
-<div class="page"><div class="slide"><div class="slide-nr">20</div>
+<div class="page"><div class="slide"><div class="slide-nr">19</div>
 <code>
 <span class="macro">@def(<span class="name">init terminal</span>)</span> <br/>
 <span class="in1"></span><span class="keyword">#if</span> <span class="var">UNIX_APP</span><br/>
@@ -285,7 +272,7 @@
 <span class="macro">@end(<span class="name">init terminal</span>)</span><br/>
 </code></div>
 </div>
-<div class="page"><div class="slide"><div class="slide-nr">21</div>
+<div class="page"><div class="slide"><div class="slide-nr">20</div>
 <code>
 <span class="macro">@add(<span class="name">globals</span>)</span><br/>
 <span class="in1"></span><span class="type">void</span> <span class="fn">write_int</span>(<span class="type">unsigned</span> <span class="type">int</span> <span class="var">v</span>) {<br/>
@@ -297,7 +284,7 @@
 <span class="macro">@end(<span class="name">globals</span>)</span><br/>
 </code></div>
 </div>
-<div class="page"><div class="slide"><div class="slide-nr">22</div>
+<div class="page"><div class="slide"><div class="slide-nr">21</div>
 <code>
 <span class="macro">@add(<span class="name">globals</span>)</span><br/>
 <span class="in1"></span><span class="type">struct</span> <span class="type">Addr_State</span> {<br/>
@@ -405,7 +392,7 @@
 <span class="macro">@end(<span class="name">globals</span>)</span><br/>
 </code></div>
 </div>
-<div class="page"><div class="slide"><div class="slide-nr">23</div>
+<div class="page"><div class="slide"><div class="slide-nr">22</div>
 <code>
 <span class="macro">@add(<span class="name">command switch</span>)</span><br/>
 <span class="in1"></span><span class="keyword">if</span> (<span class="var">cmd</span> == <span class="str">'m'</span>) {<br/>
@@ -473,7 +460,7 @@
 <span class="macro">@end(<span class="name">command switch</span>)</span><br/>
 </code></div>
 </div>
-<div class="page"><div class="slide"><div class="slide-nr">24</div>
+<div class="page"><div class="slide"><div class="slide-nr">23</div>
 <code>
 <span class="macro">@add(<span class="name">command switch</span>)</span><br/>
 <span class="in1"></span><span class="keyword">if</span> (<span class="var">cmd</span> == <span class="str">'x'</span>) {<br/>

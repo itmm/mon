@@ -25,22 +25,10 @@
 ```
 
 ```
-@add(globals)
-	#if ! UNIX_APP
-		extern "C" ulong _sp;
-	#endif
-@end(globals)
-```
-
-```
 @def(main)
 	@put(init terminal)
 	ulong start { reinterpret_cast<ulong>(
-	#if UNIX_APP
-			write_addr
-	#else
-			&_sp
-	#endif
+		write_addr
 	) };
 	ulong addr { start };
 	int cmd { 0 };

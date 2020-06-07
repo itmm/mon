@@ -40,7 +40,7 @@ mon-riscv: init.o mon-riscv.o
 
 %.hex: %
 	@echo HEX $@
-	@objcopy $^ -O ihex $@
+	@objcopy -j.text $^ -O ihex $@
 
 $(CXX_SRCs): hx_run
 
