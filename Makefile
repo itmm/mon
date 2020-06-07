@@ -1,14 +1,19 @@
 .PHONY: all apps clean
 
 HX_SRCs = $(shell hx-srcs.sh)
-CXX_SRCs = $(filter %.cpp,$(shell hx-files.sh $(HX_SRCs)))
-CXXFLAGS += -Wall -std=c++17 -O2
+SRCs = $(shell hx-files.sh $(HX_SRCs))
+
 CC = clang-9
 CXX = clang++-9
 LD = ld.lld-9
-TARGET = riscv32-unknown-elf
 
-all: hx_run mon mon-riscv.hex
+CXXFLAGS += -Wall -std=c++17 -O2
+RISCARCH = --target=riscv32 -march=rv32imac
+RISCFLAGS = $(CXXFLAGS) -fno-exceptions $(RISCARCH)
+
+all: hx_run apps
+
+apps: mon mon-riscv.hex
 
 hx_run: $(HX_SRCs)
 	@echo HX
@@ -16,23 +21,17 @@ hx_run: $(HX_SRCs)
 	@date >$@
 	@make --no-print-directory apps
 
-apps: mon mon-riscv.hex
-
-mon: $(CXX_SRCs)
+mon: mon.cpp
 	@echo C++ $@
 	@$(CXX) $(CXXFLAGS) -DUNIX_APP=1 $^ -o $@
 
-init.o: init.S
+init.o: init.s
 	@echo AS $@
-	@$(CC) -Wall -O2 --target=riscv32 -march=rv32imac -c $^ -o $@
+	@$(CC) -Wall -O2 $(RISCARCH) -c $^ -o $@
 
 mon-riscv.o: mon.cpp
 	@echo C++ $@
-	@$(CXX) $(CXXFLAGS) -fno-exceptions --target=riscv32 -march=rv32imac -c $^ -o $@
-
-mon-riscv.s: mon.cpp
-	@echo C++ -S $@
-	@$(CXX) $(CXXFLAGS) -fno-exceptions --target=riscv32 -march=rv32imac -S $^ -o $@
+	@$(CXX) $(RISCFLAGS) -c $^ -o $@
 
 mon-riscv: init.o mon-riscv.o
 	@echo LD $@
@@ -42,9 +41,9 @@ mon-riscv: init.o mon-riscv.o
 	@echo HEX $@
 	@objcopy -j.text $^ -O ihex $@
 
-$(CXX_SRCs): hx_run
+$(SRCs): hx_run
 
 clean:
 	@echo RM
-	@rm -f *.o mon-riscv.hex mon-riscv.s $(CXX_SRCs) hx_run mon mon-riscv
+	@rm -f $(SRCs) *.o mon-riscv.hex mon-riscv mon hx_run
 
