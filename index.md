@@ -27,17 +27,32 @@
 ```
 @def(main)
 	@put(init terminal)
-	ulong start { reinterpret_cast<ulong>(
-		write_addr
-	) };
+	const ulong start {
+		reinterpret_cast<ulong>(
+			write_addr
+		)
+	};
 	ulong addr { start };
+@end(main)
+```
+
+```
+@add(main)
 	int cmd { 0 };
 	#if ! UNIX_APP
-		put("start with return"); putnl();
-		while (cmd != EOF && cmd != '\n') {
+		put("start with return");
+		putnl();
+		while (
+			cmd != EOF && cmd != '\n'
+		) {
 			cmd = get();
 		}
 	#endif
+@end(main)
+```
+
+```
+@add(main)
 	while (cmd != EOF) {
 		write_addr(addr);
 		put("> ");
@@ -78,19 +93,25 @@
 	static void write_hex_nibble(
 		int nibble
 	) {
-		static const char digits[] {
-			"0123456789abcdef"
-		};
-		static_assert(
-			sizeof(digits) == 16 + 1
-		);
-		if (nibble >= 0 && nibble <= 15) {
-			put(digits[nibble]);
-		} else {
-			put('?');
-		}
+		@put(write hex nibble)
 	}
 @end(needed by write hex byte)
+```
+
+```
+@def(write hex nibble)
+	static const char digits[] {
+		"0123456789abcdef"
+	};
+	static_assert(
+		sizeof(digits) == 16 + 1
+	);
+	if (nibble >= 0 && nibble <= 15) {
+		put(digits[nibble]);
+	} else {
+		put('?');
+	}
+@end(write hex nibble)
 ```
 
 ```
@@ -145,16 +166,26 @@
 			; from < to;
 			from += bytes_per_row
 		) {
-			write_addr(from);
-			put(": ");
-			auto addr { reinterpret_cast<const char *>(from) };
-			@put(dump hex part)
-			put("| ");
-			@put(dump text part)
+			@put(dump hex line)
 			putnl();
 		}
 	}
 @end(dump hex)
+```
+
+```
+@def(dump hex line)
+	write_addr(from);
+	put(": ");
+	auto addr {
+		reinterpret_cast<const char *>(
+			from
+		)
+	};
+	@put(dump hex part)
+	put("| ");
+	@put(dump text part)
+@end(dump hex line)
 ```
 
 ```
@@ -214,17 +245,33 @@
 			termios orig_;
 		public:
 			Term_Handler() {
-				tcgetattr(STDIN_FILENO, &orig_);
-				termios raw { orig_ };
-				raw.c_lflag &= ~(ECHO | ICANON);
-				tcsetattr(STDIN_FILENO, TCSAFLUSH, &raw);
+				@put(init term handler)
 			}
 			~Term_Handler() {
-				tcsetattr(STDIN_FILENO, TCSAFLUSH, &orig_);
+				@put(reset term handler)
 			}
 		};
 	#endif
 @end(globals)
+```
+
+```
+@def(init term handler)
+	tcgetattr(STDIN_FILENO, &orig_);
+	termios raw { orig_ };
+	raw.c_lflag &= ~(ECHO | ICANON);
+	tcsetattr(
+		STDIN_FILENO, TCSAFLUSH, &raw
+	);
+@end(init term handler)
+```
+
+```
+@def(reset term handler)
+	tcsetattr(STDIN_FILENO, TCSAFLUSH,
+		&orig_
+	);
+@end(reset term handler)
 ```
 
 ```
@@ -246,7 +293,7 @@
 @add(globals)
 	void write_int(unsigned int v) {
 		if (v >= 10) {
-			write_int(v/10);
+			write_int(v / 10);
 		}
 		put((v % 10) + '0');
 	}
@@ -262,169 +309,307 @@
 		bool negative { false };
 		ulong value { 0 };
 		unsigned digits { 0 };
-		ulong get(int &cmd) {
-			bool done { false };
-			for (;;) {
-				switch (cmd) {
-					case 0x7f:
-						if (! digits) {
-							if (relative) {
-								put("\x1b[1D\x1b[K");
-								relative = negative = false;
-								break;
-							}
-							return 0;
-						}
-						--digits;
-						put("\x1b[1D\x1b[K");
-						value = value >> 4;
-						break;
-					case '+':
-						if (digits || relative) { done = true; break; }
-						put('+');
-						relative = true;
-						break;
-					case '-':
-						if (digits || relative) { done = true; break; }
-						put('-');
-						relative = true;
-						negative = true;
-						break;
-					case '0': case '1': case '2': case '3': case '4':
-					case '5': case '6': case '7': case '8': case '9':
-					case 'a': case 'b': case 'c': case 'd': case 'e':
-					case 'f': {
-						if (! value) {
-							if (digits) {
-								put("\x1b[");
-								write_int(digits);
-								put("D\x1b[K");
-								digits = 0;
-							}
-						}
-						int v;
-						if (cmd >= '0' && cmd <= '9') {
-							v = cmd - '0';
-						} else {
-							v = cmd - 'a' + 10;
-						}
-						if (digits < 2 * sizeof(ulong)) {
-							++digits;
-							value = value * 16 + v;
-							put(cmd);
-						} else { put('\a'); }
-						break;
-					}
-					default:
-						done = true;
-						break;
-				}
-				if (done) { break; }
-				cmd = ::get();
-			}
-			ulong res;
-			if (! relative) {
-				if (! digits) {
-					value = dflt;
-				}
-				res = value;
-			} else if (negative) {
-				if (value > ref) {
-					put('\a');
-					res = 0;
-				} else {
-					res = ref - value;
-				}
-			} else {
-				ulong mx { ~0ul };
-				if (mx - value < ref) {
-					put('\a');
-					res = mx;
-				} else {
-					res = ref + value;
-				}
-			}
-			if (digits + (relative ? 1 : 0)) {
-				put("\x1b[");
-				write_int(digits + (relative ? 1 : 0));
-				put("D\x1b[K");
-			}
-			write_addr(res);
-			value = res;
-			relative = negative = false;
-			digits = sizeof(unsigned long) * 2;
-
-			return res;
-		}
+		ulong get(int &cmd);
 	};
+	@put(needed by addr get)
+	ulong Addr_State::get(int &cmd) {
+		@put(get addr)
+	}
 @end(globals)
+```
+
+```
+@def(get addr)
+	bool done { false };
+	for (;;) {
+		switch (cmd) {
+		@put(get addr chars)
+		default:
+			done = true;
+			break;
+		}
+		if (done) { break; }
+		cmd = ::get();
+	}
+@end(get addr)
+```
+
+```
+@def(get addr chars)
+	case 0x7f:
+		if (! digits) {
+			if (! relative) {
+				return 0;
+			}
+			@mul(delete after prev char)
+			relative = negative = false;
+		} else {
+			@mul(delete after prev char)
+			--digits;
+			value = value >> 4;
+		}
+		break;
+@end(get addr chars)
+```
+
+```
+@def(delete after prev char)
+	put("\x1b[1D\x1b[K");
+@end(delete after prev char)
+```
+
+```
+@add(get addr chars)
+	case '+': case '-':
+		if (digits || relative) {
+			done = true; break;
+		}
+		put(static_cast<char>(cmd));
+		relative = true;
+		negative = (cmd == '-');
+		break;
+@end(get addr chars)
+```
+
+```
+@add(get addr chars)
+	case '0': case '1': case '2':
+	case '3': case '4': case '5':
+	case '6': case '7': case '8':
+	case '9': case 'a': case 'b':
+	case 'c': case 'd': case 'e':
+	case 'f': {
+		@put(get addr digit)
+		break;
+	}
+@end(get addr chars)
+```
+
+```
+@def(needed by addr get)
+	void delete_after_prev_chars(int n) {
+		if (n > 0) {
+			put("\x1b[");
+			write_int(n);
+			put("D\x1b[K");
+		}
+	}
+@end(needed by addr get)
+```
+
+```
+@def(get addr digit)
+	if (! value) {
+		delete_after_prev_chars(digits);
+		digits = 0;
+	}
+@end(get addr digit)
+```
+* clear leading zeros
+
+```
+@add(get addr digit)
+	int v;
+	if (cmd >= '0' && cmd <= '9') {
+		v = cmd - '0';
+	} else {
+		v = cmd - 'a' + 10;
+	}
+	if (digits < 2 * sizeof(ulong)) {
+		++digits;
+		value = value * 16 + v;
+		put(cmd);
+	} else { put('\a'); }
+@end(get addr digit)
+```
+
+```
+@add(get addr)
+	if (! relative) {
+		@put(addr not relative)
+	} else if (negative) {
+		@put(addr neg relative)
+	} else {
+		@put(addr pos relative)
+	}
+@end(get addr)
+```
+
+```
+@def(addr not relative)
+	if (! digits) {
+		value = dflt;
+	}
+@end(addr not relative)
+```
+
+```
+@def(addr neg relative)
+	if (value > ref) {
+		put('\a');
+		value = 0;
+	} else {
+		value = ref - value;
+	}
+@end(addr neg relative)
+```
+
+```
+@def(addr pos relative)
+	constexpr ulong mx { ~0ul };
+	if (mx - value < ref) {
+		put('\a');
+		value = mx;
+	} else {
+		value = ref + value;
+	}
+@end(addr pos relative)
+```
+
+```
+@add(get addr)
+	delete_after_prev_chars(
+		digits + (relative ? 1 : 0)
+	);
+	write_addr(value);
+	relative = negative = false;
+	digits = sizeof(ulong) * 2;
+	return value;
+@end(get addr)
 ```
 
 ```
 @add(command switch)
 	if (cmd == 'm') {
-		int state { 1 };
-		put("memory ");
-		cmd = get();
-		Addr_State from;
-		Addr_State to;
-		from.ref = addr;
-		from.dflt = addr;
-		for (;;) {
-			if (state == 1) {
-				if (cmd == 0x7f) {
-					put("\x1b[0E\x1b[2K");
-					break;
-				}
-				state = 2;
-			}
-			if (state == 2) {
-				from.get(cmd);
-				if (cmd == 0x7f) {
-					state = 1;
-				} else {
-					to.ref = from.value;
-					to.dflt = from.value + bytes_per_row * default_rows;
-					state = 3;
-				}
-			}
-			if (state == 3) {
-				if (cmd == 0x7f) {
-					put("\x1b[4D\x1b[K");
-					cmd = get();
-					state = 2;
-				} else {
-					put(" .. ");
-					if (cmd == '.') {
-						cmd = get();
-					}
-					state = 4;
-				}
-			}
-			if (state == 4) {
-				to.get(cmd);
-				if (cmd == 0x7f) {
-					state = 3;
-				} else {
-					if (cmd == '\n') {
-						if (from.value <= to.value) {
-							putnl();
-							dump_hex(from.value, to.value);
-							addr = to.value;
-						} else {
-							put('\a'); putnl();
-						}
-						break;
-					} else {
-						put('\a');
-						cmd = get();
-					}
-				}
-			}
-		}
+		@put(memory command)
 		continue;
 	}
 @end(command switch)
+```
+
+```
+@add(globals)
+	enum class MC_State {
+		before_enter_1st,
+		entering_1st,
+		after_entering_1st,
+		entering_2nd
+	};
+@end(globals)
+```
+
+```
+@def(memory command)
+	MC_State state { MC_State::before_enter_1st };
+	put("memory ");
+	cmd = get();
+	Addr_State from;
+	Addr_State to;
+	from.ref = addr;
+	from.dflt = addr;
+@end(memory command)
+```
+
+```
+@add(memory command)
+	bool done { false };
+	while (! done) { switch (state) {
+		case MC_State::before_enter_1st:
+			@put(mc before enter 1st)
+			break;
+		case MC_State::entering_1st:
+			@put(mc entering 1st)
+			break;
+		case MC_State::after_entering_1st:
+			@put(mc after entering 1st)
+			break;
+		case MC_State::entering_2nd:
+			@put(mc entering 2nd)
+			break;
+	} }
+@end(memory command)
+```
+
+```
+@def(clear whole line)
+	put("\x1b[0E\x1b[2K");
+@end(clear whole line)
+```
+
+```
+@def(mc before enter 1st)
+	if (cmd == 0x7f) {
+		@mul(clear whole line)
+		done = true;
+	} else {
+		state = MC_State::entering_1st;
+	}
+@end(mc before enter 1st)
+```
+
+```
+@def(mc entering 1st)
+	from.get(cmd);
+	if (cmd == 0x7f) {
+		state =
+			MC_State::before_enter_1st;
+	} else {
+		to.ref = from.value;
+		to.dflt = from.value +
+			bytes_per_row * default_rows;
+		state =
+			MC_State::after_entering_1st;
+	}
+@end(mc entering 1st)
+```
+
+```
+@def(mc after entering 1st) {
+	constexpr char inter[] = " .. ";
+	if (cmd == 0x7f) {
+		delete_after_prev_chars(
+			sizeof(inter) - 1
+		);
+		cmd = get();
+		state = MC_State::entering_1st;
+	} else {
+		put(inter);
+		if (cmd == '.') {
+			cmd = get();
+		}
+		state = MC_State::entering_2nd;
+	}
+} @end(mc after entering 1st)
+```
+
+```
+@def(mc entering 2nd)
+	to.get(cmd);
+	if (cmd == 0x7f) {
+		state =
+			MC_State::after_entering_1st;
+	} else {
+		if (cmd == '\n') {
+			@put(mc done)
+			done = true;
+		} else {
+			put('\a');
+			cmd = get();
+		}
+	}
+@end(mc entering 2nd)
+```
+
+```
+@def(mc done)
+	if (from.value <= to.value) {
+		putnl();
+		dump_hex(from.value, to.value);
+		addr = to.value;
+	} else {
+		put('\a'); putnl();
+	}
+@end(mc done)
 ```
 
 ```

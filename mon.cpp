@@ -19,7 +19,7 @@
 
 	#endif
 
-#line 202 "index.md"
+#line 233 "index.md"
 
 	#if UNIX_APP
 		#include <termios.h>
@@ -114,32 +114,38 @@
 
 	using ulong = unsigned long;
 	
-#line 68 "index.md"
+#line 83 "index.md"
 
 	
-#line 77 "index.md"
+#line 92 "index.md"
 
 	static void write_hex_nibble(
 		int nibble
 	) {
-		static const char digits[] {
-			"0123456789abcdef"
-		};
-		static_assert(
-			sizeof(digits) == 16 + 1
-		);
-		if (nibble >= 0 && nibble <= 15) {
-			put(digits[nibble]);
-		} else {
-			put('?');
-		}
+		
+#line 102 "index.md"
+
+	static const char digits[] {
+		"0123456789abcdef"
+	};
+	static_assert(
+		sizeof(digits) == 16 + 1
+	);
+	if (nibble >= 0 && nibble <= 15) {
+		put(digits[nibble]);
+	} else {
+		put('?');
 	}
 
-#line 69 "index.md"
+#line 96 "index.md"
+
+	}
+
+#line 84 "index.md"
 
 	static void write_hex_byte(int byte) {
 		
-#line 97 "index.md"
+#line 118 "index.md"
 
 	if (byte >= 0 && byte <= 255) {
 		write_hex_nibble(byte >> 4);
@@ -148,7 +154,7 @@
 		put("??");
 	}
 
-#line 71 "index.md"
+#line 86 "index.md"
 
 	}
 
@@ -156,7 +162,7 @@
 
 	static void write_addr(ulong addr) {
 		
-#line 108 "index.md"
+#line 129 "index.md"
 
 	int shift { (sizeof(ulong) - 1) * 8 };
 	for (; shift >= 0; shift -= 8) {
@@ -169,13 +175,13 @@
 
 	}
 
-#line 119 "index.md"
+#line 140 "index.md"
 
 	constexpr int bytes_per_row { 16 };
 	constexpr int default_rows { 8 };
 	void dump_hex(ulong from, ulong to) {
 		
-#line 141 "index.md"
+#line 162 "index.md"
 
 	put("\x1b[0E\x1b[2K");
 	if (from && from < to) {
@@ -183,11 +189,18 @@
 			; from < to;
 			from += bytes_per_row
 		) {
-			write_addr(from);
-			put(": ");
-			auto addr { reinterpret_cast<const char *>(from) };
 			
-#line 161 "index.md"
+#line 177 "index.md"
+
+	write_addr(from);
+	put(": ");
+	auto addr {
+		reinterpret_cast<const char *>(
+			from
+		)
+	};
+	
+#line 192 "index.md"
  {
 	int row { 0 };
 	for (; row < bytes_per_row; ++row) {
@@ -200,21 +213,21 @@
 		}
 		put(' ');
 		
-#line 194 "index.md"
+#line 225 "index.md"
 
 	if (row + 1 != bytes_per_row &&
 		row % 8 == 7
 	) { put(' '); }
 
-#line 172 "index.md"
+#line 203 "index.md"
 
 	}
 } 
-#line 151 "index.md"
+#line 185 "index.md"
 
-			put("| ");
-			
-#line 178 "index.md"
+	put("| ");
+	
+#line 209 "index.md"
  {
 	int row { 0 };
 	for (; row < bytes_per_row; ++row) {
@@ -226,54 +239,73 @@
 			put('.');
 		}
 		
-#line 194 "index.md"
+#line 225 "index.md"
 
 	if (row + 1 != bytes_per_row &&
 		row % 8 == 7
 	) { put(' '); }
 
-#line 188 "index.md"
+#line 219 "index.md"
 
 	}
 } 
-#line 153 "index.md"
+#line 187 "index.md"
+
+
+#line 169 "index.md"
 
 			putnl();
 		}
 	}
 
-#line 123 "index.md"
+#line 144 "index.md"
 
 	}
 
-#line 211 "index.md"
+#line 242 "index.md"
 
 	#if UNIX_APP
 		class Term_Handler {
 			termios orig_;
 		public:
 			Term_Handler() {
-				tcgetattr(STDIN_FILENO, &orig_);
-				termios raw { orig_ };
-				raw.c_lflag &= ~(ECHO | ICANON);
-				tcsetattr(STDIN_FILENO, TCSAFLUSH, &raw);
+				
+#line 259 "index.md"
+
+	tcgetattr(STDIN_FILENO, &orig_);
+	termios raw { orig_ };
+	raw.c_lflag &= ~(ECHO | ICANON);
+	tcsetattr(
+		STDIN_FILENO, TCSAFLUSH, &raw
+	);
+
+#line 248 "index.md"
+
 			}
 			~Term_Handler() {
-				tcsetattr(STDIN_FILENO, TCSAFLUSH, &orig_);
+				
+#line 270 "index.md"
+
+	tcsetattr(STDIN_FILENO, TCSAFLUSH,
+		&orig_
+	);
+
+#line 251 "index.md"
+
 			}
 		};
 	#endif
 
-#line 246 "index.md"
+#line 293 "index.md"
 
 	void write_int(unsigned int v) {
 		if (v >= 10) {
-			write_int(v/10);
+			write_int(v / 10);
 		}
 		put((v % 10) + '0');
 	}
 
-#line 257 "index.md"
+#line 304 "index.md"
 
 	struct Addr_State {
 		ulong ref;
@@ -282,100 +314,175 @@
 		bool negative { false };
 		ulong value { 0 };
 		unsigned digits { 0 };
-		ulong get(int &cmd) {
-			bool done { false };
-			for (;;) {
-				switch (cmd) {
-					case 0x7f:
-						if (! digits) {
-							if (relative) {
-								put("\x1b[1D\x1b[K");
-								relative = negative = false;
-								break;
-							}
-							return 0;
-						}
-						--digits;
-						put("\x1b[1D\x1b[K");
-						value = value >> 4;
-						break;
-					case '+':
-						if (digits || relative) { done = true; break; }
-						put('+');
-						relative = true;
-						break;
-					case '-':
-						if (digits || relative) { done = true; break; }
-						put('-');
-						relative = true;
-						negative = true;
-						break;
-					case '0': case '1': case '2': case '3': case '4':
-					case '5': case '6': case '7': case '8': case '9':
-					case 'a': case 'b': case 'c': case 'd': case 'e':
-					case 'f': {
-						if (! value) {
-							if (digits) {
-								put("\x1b[");
-								write_int(digits);
-								put("D\x1b[K");
-								digits = 0;
-							}
-						}
-						int v;
-						if (cmd >= '0' && cmd <= '9') {
-							v = cmd - '0';
-						} else {
-							v = cmd - 'a' + 10;
-						}
-						if (digits < 2 * sizeof(ulong)) {
-							++digits;
-							value = value * 16 + v;
-							put(cmd);
-						} else { put('\a'); }
-						break;
-					}
-					default:
-						done = true;
-						break;
-				}
-				if (done) { break; }
-				cmd = ::get();
-			}
-			ulong res;
-			if (! relative) {
-				if (! digits) {
-					value = dflt;
-				}
-				res = value;
-			} else if (negative) {
-				if (value > ref) {
-					put('\a');
-					res = 0;
-				} else {
-					res = ref - value;
-				}
-			} else {
-				ulong mx { ~0ul };
-				if (mx - value < ref) {
-					put('\a');
-					res = mx;
-				} else {
-					res = ref + value;
-				}
-			}
-			if (digits + (relative ? 1 : 0)) {
-				put("\x1b[");
-				write_int(digits + (relative ? 1 : 0));
-				put("D\x1b[K");
-			}
-			write_addr(res);
-			value = res;
-			relative = negative = false;
-			digits = sizeof(unsigned long) * 2;
+		ulong get(int &cmd);
+	};
+	
+#line 389 "index.md"
 
-			return res;
+	void delete_after_prev_chars(int n) {
+		if (n > 0) {
+			put("\x1b[");
+			write_int(n);
+			put("D\x1b[K");
 		}
+	}
+
+#line 314 "index.md"
+
+	ulong Addr_State::get(int &cmd) {
+		
+#line 322 "index.md"
+
+	bool done { false };
+	for (;;) {
+		switch (cmd) {
+		
+#line 338 "index.md"
+
+	case 0x7f:
+		if (! digits) {
+			if (! relative) {
+				return 0;
+			}
+			
+#line 356 "index.md"
+
+	put("\x1b[1D\x1b[K");
+
+#line 344 "index.md"
+
+			relative = negative = false;
+		} else {
+			
+#line 356 "index.md"
+
+	put("\x1b[1D\x1b[K");
+
+#line 347 "index.md"
+
+			--digits;
+			value = value >> 4;
+		}
+		break;
+
+#line 362 "index.md"
+
+	case '+': case '-':
+		if (digits || relative) {
+			done = true; break;
+		}
+		put(static_cast<char>(cmd));
+		relative = true;
+		negative = (cmd == '-');
+		break;
+
+#line 375 "index.md"
+
+	case '0': case '1': case '2':
+	case '3': case '4': case '5':
+	case '6': case '7': case '8':
+	case '9': case 'a': case 'b':
+	case 'c': case 'd': case 'e':
+	case 'f': {
+		
+#line 401 "index.md"
+
+	if (! value) {
+		delete_after_prev_chars(digits);
+		digits = 0;
+	}
+
+#line 411 "index.md"
+
+	int v;
+	if (cmd >= '0' && cmd <= '9') {
+		v = cmd - '0';
+	} else {
+		v = cmd - 'a' + 10;
+	}
+	if (digits < 2 * sizeof(ulong)) {
+		++digits;
+		value = value * 16 + v;
+		put(cmd);
+	} else { put('\a'); }
+
+#line 382 "index.md"
+
+		break;
+	}
+
+#line 326 "index.md"
+
+		default:
+			done = true;
+			break;
+		}
+		if (done) { break; }
+		cmd = ::get();
+	}
+
+#line 427 "index.md"
+
+	if (! relative) {
+		
+#line 439 "index.md"
+
+	if (! digits) {
+		value = dflt;
+	}
+
+#line 429 "index.md"
+
+	} else if (negative) {
+		
+#line 447 "index.md"
+
+	if (value > ref) {
+		put('\a');
+		value = 0;
+	} else {
+		value = ref - value;
+	}
+
+#line 431 "index.md"
+
+	} else {
+		
+#line 458 "index.md"
+
+	constexpr ulong mx { ~0ul };
+	if (mx - value < ref) {
+		put('\a');
+		value = mx;
+	} else {
+		value = ref + value;
+	}
+
+#line 433 "index.md"
+
+	}
+
+#line 470 "index.md"
+
+	delete_after_prev_chars(
+		digits + (relative ? 1 : 0)
+	);
+	write_addr(value);
+	relative = negative = false;
+	digits = sizeof(ulong) * 2;
+	return value;
+
+#line 316 "index.md"
+
+	}
+
+#line 491 "index.md"
+
+	enum class MC_State {
+		before_enter_1st,
+		entering_1st,
+		after_entering_1st,
+		entering_2nd
 	};
 
 #line 6 "index.md"
@@ -385,7 +492,7 @@
 #line 28 "index.md"
 
 	
-#line 231 "index.md"
+#line 278 "index.md"
  
 	#if UNIX_APP
 		Term_Handler term_handler;
@@ -400,17 +507,28 @@
 
 #line 29 "index.md"
 
-	ulong start { reinterpret_cast<ulong>(
-		write_addr
-	) };
+	const ulong start {
+		reinterpret_cast<ulong>(
+			write_addr
+		)
+	};
 	ulong addr { start };
+
+#line 40 "index.md"
+
 	int cmd { 0 };
 	#if ! UNIX_APP
-		put("start with return"); putnl();
-		while (cmd != EOF && cmd != '\n') {
+		put("start with return");
+		putnl();
+		while (
+			cmd != EOF && cmd != '\n'
+		) {
 			cmd = get();
 		}
 	#endif
+
+#line 55 "index.md"
+
 	while (cmd != EOF) {
 		write_addr(addr);
 		put("> ");
@@ -421,7 +539,7 @@
 			cmd = get();
 		}
 		
-#line 129 "index.md"
+#line 150 "index.md"
 
 	if (cmd == '\n') {
 		ulong from { addr };
@@ -431,72 +549,126 @@
 		continue;
 	}
 
-#line 364 "index.md"
+#line 482 "index.md"
 
 	if (cmd == 'm') {
-		int state { 1 };
-		put("memory ");
+		
+#line 502 "index.md"
+
+	MC_State state { MC_State::before_enter_1st };
+	put("memory ");
+	cmd = get();
+	Addr_State from;
+	Addr_State to;
+	from.ref = addr;
+	from.dflt = addr;
+
+#line 514 "index.md"
+
+	bool done { false };
+	while (! done) { switch (state) {
+		case MC_State::before_enter_1st:
+			
+#line 540 "index.md"
+
+	if (cmd == 0x7f) {
+		
+#line 534 "index.md"
+
+	put("\x1b[0E\x1b[2K");
+
+#line 542 "index.md"
+
+		done = true;
+	} else {
+		state = MC_State::entering_1st;
+	}
+
+#line 518 "index.md"
+
+			break;
+		case MC_State::entering_1st:
+			
+#line 551 "index.md"
+
+	from.get(cmd);
+	if (cmd == 0x7f) {
+		state =
+			MC_State::before_enter_1st;
+	} else {
+		to.ref = from.value;
+		to.dflt = from.value +
+			bytes_per_row * default_rows;
+		state =
+			MC_State::after_entering_1st;
+	}
+
+#line 521 "index.md"
+
+			break;
+		case MC_State::after_entering_1st:
+			
+#line 567 "index.md"
+ {
+	constexpr char inter[] = " .. ";
+	if (cmd == 0x7f) {
+		delete_after_prev_chars(
+			sizeof(inter) - 1
+		);
 		cmd = get();
-		Addr_State from;
-		Addr_State to;
-		from.ref = addr;
-		from.dflt = addr;
-		for (;;) {
-			if (state == 1) {
-				if (cmd == 0x7f) {
-					put("\x1b[0E\x1b[2K");
-					break;
-				}
-				state = 2;
-			}
-			if (state == 2) {
-				from.get(cmd);
-				if (cmd == 0x7f) {
-					state = 1;
-				} else {
-					to.ref = from.value;
-					to.dflt = from.value + bytes_per_row * default_rows;
-					state = 3;
-				}
-			}
-			if (state == 3) {
-				if (cmd == 0x7f) {
-					put("\x1b[4D\x1b[K");
-					cmd = get();
-					state = 2;
-				} else {
-					put(" .. ");
-					if (cmd == '.') {
-						cmd = get();
-					}
-					state = 4;
-				}
-			}
-			if (state == 4) {
-				to.get(cmd);
-				if (cmd == 0x7f) {
-					state = 3;
-				} else {
-					if (cmd == '\n') {
-						if (from.value <= to.value) {
-							putnl();
-							dump_hex(from.value, to.value);
-							addr = to.value;
-						} else {
-							put('\a'); putnl();
-						}
-						break;
-					} else {
-						put('\a');
-						cmd = get();
-					}
-				}
-			}
+		state = MC_State::entering_1st;
+	} else {
+		put(inter);
+		if (cmd == '.') {
+			cmd = get();
 		}
+		state = MC_State::entering_2nd;
+	}
+} 
+#line 524 "index.md"
+
+			break;
+		case MC_State::entering_2nd:
+			
+#line 586 "index.md"
+
+	to.get(cmd);
+	if (cmd == 0x7f) {
+		state =
+			MC_State::after_entering_1st;
+	} else {
+		if (cmd == '\n') {
+			
+#line 604 "index.md"
+
+	if (from.value <= to.value) {
+		putnl();
+		dump_hex(from.value, to.value);
+		addr = to.value;
+	} else {
+		put('\a'); putnl();
+	}
+
+#line 593 "index.md"
+
+			done = true;
+		} else {
+			put('\a');
+			cmd = get();
+		}
+	}
+
+#line 527 "index.md"
+
+			break;
+	} }
+
+#line 484 "index.md"
+
 		continue;
 	}
 
-#line 431 "index.md"
+#line 616 "index.md"
 
 	if (cmd == 'x') {
 		put("reset to start"); putnl();
@@ -504,10 +676,10 @@
 		continue;
 	}
 
-#line 50 "index.md"
+#line 65 "index.md"
 
 		
-#line 58 "index.md"
+#line 73 "index.md"
 
 	put("\aunknown command ");
 	put(isprint(cmd) ? (char) cmd : '?');
@@ -515,7 +687,7 @@
 	write_hex_byte(cmd & 0xff);
 	put(')'); putnl();
 
-#line 51 "index.md"
+#line 66 "index.md"
 
 	}
 	put("quit"); putnl();
