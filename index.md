@@ -27,11 +27,29 @@
 ```
 @def(main)
 	@put(init terminal)
+	#if UNIX_APP
+		char buffer[] =
+			"\x41\x11\x06\xc6\x22\xc4"
+			"\x26\xc2\x4a\xc0\x2a\x84"
+			"\xe1\x44\x7d\x59"
+			"\x33\x55\x94\x00"
+			"\x13\x75\xf5\x0f"
+			"\x97\x00\x00\x00"
+			"\xe1\x14\xe3\x47\x99\xfe"
+			"\x02\x49\x92\x44\x22\x44"
+			"\xb2\x40\x41\x01\x82\x80";
+	const ulong start {
+		reinterpret_cast<ulong>(
+			buffer
+		)
+	};
+	#else
 	const ulong start {
 		reinterpret_cast<ulong>(
 			write_addr
 		)
 	};
+	#endif
 	ulong addr { start };
 @end(main)
 ```
@@ -620,4 +638,171 @@
 		continue;
 	}
 @end(command switch)
+```
+
+```
+@add(command switch)
+	if (cmd == 'd') {
+		@put(disassemble)
+		continue;
+	}
+@end(command switch)
+```
+
+```
+@add(globals)
+	void write_hex_int(int value, int bytes) {
+		if (bytes < 0) {
+			if (value < 256) { write_hex_int(value, 1); }
+			else if (value < 0x10000) { write_hex_int(value, 2); }
+			else { write_hex_int(value, 4); }
+			return;
+		}
+		for (; bytes; --bytes) {
+			write_hex_byte((value >> (8 * (bytes - 1))) & 0xff);
+		}
+	}
+@end(globals)
+```
+
+```
+@add(globals)
+	void write_reg(int reg) {
+		switch (reg) {
+			case 0: put("zero"); break;
+			case 1: put("ra"); break;
+			case 2: put("sp"); break;
+			case 3: put("gp"); break;
+			case 4: put("tp"); break;
+			case 5: case 6: case 7:
+				put('t'); put('0' + reg - 5); break;
+			case 8: case 9:
+				put('s'); put('0' + reg - 8); break;
+			case 10: case 11: case 12:
+			case 13: case 14: case 15:
+			case 16: case 17:
+				put('a'); put('0' + reg - 10); break;
+			case 18: case 19: case 20:
+			case 21: case 22: case 23:
+			case 24: case 25: case 26:
+			case 27:
+				put('s'); write_int(reg - 18 + 2); break;
+			case 28: case 29: case 30:
+			case 31:
+				put('t'); put('0' + reg - 31 + 3); break;
+			default:
+				put("?? # "); write_int(reg);
+		}
+	}
+@end(globals)
+```
+
+```
+@def(disassemble)
+	@mul(clear whole line)
+	write_addr(addr);
+	put("  ");
+	const auto bytes { reinterpret_cast<
+		unsigned char *
+	>(addr) };
+	unsigned cmd { 0 };
+	cmd = bytes[0];
+	if ((cmd & 0x3) != 0x3) {
+		cmd |= bytes[1] << 8;
+			
+		write_hex_byte(bytes[0]);
+		put(' ');
+		write_hex_byte(bytes[1]);
+		put("        ");
+		if (cmd == 0x0000) {
+			put("db.s $0000 # illegal");
+		} else if ((cmd & 0xe003) == 0x0001 && (cmd & 0x0f80) != 0) {
+			auto reg { (cmd & 0x0f80) >> 7 };
+			auto immed { (cmd & 0x007c) >> 2 };
+			write_reg(reg);
+			put(" <- ");
+			write_reg(reg);
+			if (cmd & 0x1000) {
+				immed = (~immed + 1) & 0x1f;
+				put(" - $");
+			} else {
+				put(" + $");
+			}
+			write_hex_int(immed, -1);
+		} else if ((cmd & 0xe003) == 0x4001 && (cmd & 0x0f80) != 0) {
+			auto reg { (cmd & 0x0f80) >> 7 };
+			auto immed { (cmd & 0x007c) >> 2 };
+			write_reg(reg);
+			put(" <- ");
+			if (cmd & 0x1000) {
+				immed = (~immed + 1) & 0x1f;
+				put("-$");
+			} else {
+				put('$');
+			}
+			write_hex_int(immed, -1);
+		} else if ((cmd & 0xe003) == 0xc002) {
+			auto reg { (cmd & 0x7c) >> 2 };
+			auto offset { ((cmd & 0x1e00) >> (9 - 2)) | ((cmd & 0x0180) >> (7 - 6)) };
+			put("(sp + $");
+			write_hex_int(offset, -1);
+			put(") <- ");
+			write_reg(reg);
+		} else if ((cmd & 0xf003) == 0x8002 && (cmd & 0x007c) != 0) {
+			write_reg((cmd & 0x0f80) >> 7);
+			put(" <- ");
+			write_reg((cmd & 0x007c) >> 2);
+			
+		} else if ((cmd & 0xf003) == 0x9002 && (cmd & 0x007c) != 0) {
+			write_reg((cmd & 0x0f80) >> 7);
+			put(" <- ");
+			write_reg((cmd & 0x0f80) >> 7);
+			put(" + ");
+			write_reg((cmd & 0x007c) >> 2);
+			
+		} else if (cmd == 0x8082) {
+			put("ret");
+		} else {
+			put("db.s $");
+			write_hex_int(cmd, 2);
+		}
+		putnl();
+		addr += 2;
+	} else if ((cmd & 0xc) != 0xc) {
+		cmd |= bytes[1] << 8;
+		cmd |= bytes[2] << 16;
+		cmd |= bytes[3] << 24;
+		write_hex_byte(bytes[0]);
+		put(' ');
+		write_hex_byte(bytes[1]);
+		put(' ');
+		write_hex_byte(bytes[2]);
+		put(' ');
+		write_hex_byte(bytes[3]);
+		put("  ");
+		if ((cmd & 0xfe00707f) == 0x00005033) {
+			write_reg((cmd & 0x00000f80) >> 7);
+			put(" <- ");
+			write_reg((cmd & 0x000f8000) >> 15);
+			put(" >> ");
+			write_reg((cmd & 0x01f00000) >> 20);
+		} else {
+			put("db.w $");
+			write_hex_int(cmd, 4);
+		}
+		putnl();
+		addr += 4;
+	} else {
+		write_hex_byte(bytes[0]);
+		put(' ');
+		write_hex_byte(bytes[1]);
+		put("        ");
+		put("db.b $");
+		write_hex_byte(bytes[0]);
+		put(" $");
+		write_hex_byte(bytes[1]);
+		putnl();
+		addr += 2;
+	}
+@end(disassemble)
 ```
