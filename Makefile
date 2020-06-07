@@ -7,7 +7,7 @@ CC = clang-9
 CXX = clang++-9
 LD = ld.lld-9
 
-CXXFLAGS += -Wall -std=c++17 -O2
+CXXFLAGS += -Wall -std=c++17 -Os
 RISCARCH = --target=riscv32 -march=rv32imac
 RISCFLAGS = $(CXXFLAGS) -fno-exceptions $(RISCARCH)
 
@@ -27,7 +27,7 @@ mon: mon.cpp
 
 init.o: init.s
 	@echo AS $@
-	@$(CC) -Wall -O2 $(RISCARCH) -c $^ -o $@
+	@$(CC) -Wall -Os $(RISCARCH) -c $^ -o $@
 
 mon-riscv.o: mon.cpp
 	@echo C++ $@
