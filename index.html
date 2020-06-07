@@ -51,6 +51,7 @@
 <span class="in3"></span><span class="str">"\x33\x55\x94\x00"</span><br/>
 <span class="in3"></span><span class="str">"\x13\x75\xf5\x0f"</span><br/>
 <span class="in3"></span><span class="str">"\x97\x00\x00\x00"</span><br/>
+<span class="in3"></span><span class="str">"\xe7\x80\xa0\x01"</span><br/>
 <span class="in3"></span><span class="str">"\xe1\x14\xe3\x47\x99\xfe"</span><br/>
 <span class="in3"></span><span class="str">"\x02\x49\x92\x44\x22\x44"</span><br/>
 <span class="in3"></span><span class="str">"\xb2\x40\x41\x01\x82\x80"</span>;<br/>
@@ -812,10 +813,17 @@ clear leading zeros
 <span class="in2"></span>} <span class="keyword">else</span> <span class="keyword">if</span> ((<span class="var">cmd</span> &amp; <span class="num">0xe003</span>) == <span class="num">0xc002</span>) {<br/>
 <span class="in3"></span><span class="type">auto</span> <span class="var">reg</span> { (<span class="var">cmd</span> &amp; <span class="num">0x7c</span>) &gt;&gt; <span class="num">2</span> };<br/>
 <span class="in3"></span><span class="type">auto</span> <span class="var">offset</span> { ((<span class="var">cmd</span> &amp; <span class="num">0x1e00</span>) &gt;&gt; (<span class="num">9</span> - <span class="num">2</span>)) | ((<span class="var">cmd</span> &amp; <span class="num">0x0180</span>) &gt;&gt; (<span class="num">7</span> - <span class="num">6</span>)) };<br/>
-<span class="in3"></span><span class="fn">put</span>(<span class="str">"(sp + $"</span>);<br/>
+<span class="in3"></span><span class="fn">put</span>(<span class="str">"[sp + $"</span>);<br/>
 <span class="in3"></span><span class="fn">write_hex_int</span>(<span class="var">offset</span>, -<span class="num">1</span>);<br/>
-<span class="in3"></span><span class="fn">put</span>(<span class="str">") &lt;- "</span>);<br/>
+<span class="in3"></span><span class="fn">put</span>(<span class="str">"] &lt;- "</span>);<br/>
 <span class="in3"></span><span class="fn">write_reg</span>(<span class="var">reg</span>);<br/>
+<span class="in2"></span>} <span class="keyword">else</span> <span class="keyword">if</span> ((<span class="var">cmd</span> &amp; <span class="num">0xe003</span>) == <span class="num">0x4002</span>) {<br/>
+<span class="in3"></span><span class="type">auto</span> <span class="var">reg</span> { (<span class="var">cmd</span> &amp; <span class="num">0x0f80</span>) &gt;&gt; <span class="num">7</span> };<br/>
+<span class="in3"></span><span class="type">auto</span> <span class="var">offset</span> { ((<span class="var">cmd</span> &amp; <span class="num">0x0070</span>) &gt;&gt; (<span class="num">4</span> - <span class="num">2</span>)) | ((<span class="var">cmd</span> &amp; <span class="num">0x000c</span>) &lt;&lt; (<span class="num">6</span> - <span class="num">2</span>)) | ((<span class="var">cmd</span> &amp; <span class="num">0x1000</span>) &gt;&gt; (<span class="num">12</span> - <span class="num">5</span>)) };<br/>
+<span class="in3"></span><span class="fn">write_reg</span>(<span class="var">reg</span>);<br/>
+<span class="in3"></span><span class="fn">put</span>(<span class="str">" &lt;- [sp + $"</span>);<br/>
+<span class="in3"></span><span class="fn">write_hex_int</span>(<span class="var">offset</span>, -<span class="num">1</span>);<br/>
+<span class="in3"></span><span class="fn">put</span>(<span class="str">']'</span>);<br/>
 <span class="in2"></span>} <span class="keyword">else</span> <span class="keyword">if</span> ((<span class="var">cmd</span> &amp; <span class="num">0xf003</span>) == <span class="num">0x8002</span> &amp;&amp; (<span class="var">cmd</span> &amp; <span class="num">0x007c</span>) != <span class="num">0</span>) {<br/>
 <span class="in3"></span><span class="fn">write_reg</span>((<span class="var">cmd</span> &amp; <span class="num">0x0f80</span>) &gt;&gt; <span class="num">7</span>);<br/>
 <span class="in3"></span><span class="fn">put</span>(<span class="str">" &lt;- "</span>);<br/>

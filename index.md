@@ -35,6 +35,7 @@
 			"\x33\x55\x94\x00"
 			"\x13\x75\xf5\x0f"
 			"\x97\x00\x00\x00"
+			"\xe7\x80\xa0\x01"
 			"\xe1\x14\xe3\x47\x99\xfe"
 			"\x02\x49\x92\x44\x22\x44"
 			"\xb2\x40\x41\x01\x82\x80";
@@ -744,10 +745,17 @@
 		} else if ((cmd & 0xe003) == 0xc002) {
 			auto reg { (cmd & 0x7c) >> 2 };
 			auto offset { ((cmd & 0x1e00) >> (9 - 2)) | ((cmd & 0x0180) >> (7 - 6)) };
-			put("(sp + $");
+			put("[sp + $");
 			write_hex_int(offset, -1);
-			put(") <- ");
+			put("] <- ");
 			write_reg(reg);
+		} else if ((cmd & 0xe003) == 0x4002) {
+			auto reg { (cmd & 0x0f80) >> 7 };
+			auto offset { ((cmd & 0x0070) >> (4 - 2)) | ((cmd & 0x000c) << (6 - 2)) | ((cmd & 0x1000) >> (12 - 5)) };
+			write_reg(reg);
+			put(" <- [sp + $");
+			write_hex_int(offset, -1);
+			put(']');
 		} else if ((cmd & 0xf003) == 0x8002 && (cmd & 0x007c) != 0) {
 			write_reg((cmd & 0x0f80) >> 7);
 			put(" <- ");
