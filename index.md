@@ -11,62 +11,7 @@
 ```
 
 ```
-@def(includes)
-	#if UNIX_APP
-		#include <iostream>
-	#else
-		constexpr int EOF { -1 };
-		inline bool isprint(char ch) {
-			return ch >= ' ' && ch <= '~';
-		}
-	#endif
-@end(includes)
-```
-
-```
-@def(globals)
-	#if ! UNIX_APP
-		volatile int *uart { reinterpret_cast<volatile int *>(0x10013000) };
-	#endif
-	void put(char ch) {
-		#if UNIX_APP
-			std::cout.put(ch);
-		#else
-			constexpr int tx_data { 0x00 };
-			while (uart[tx_data] < 0) {}
-			uart[tx_data] = ch;
-		#endif
-	}
-	void put(const char *begin) {
-		if (begin) {
-			while (*begin) {
-				put(*begin++);
-			}
-		}
-	}
-	void putnl() {
-		#if UNIX_APP
-			put('\n');
-		#else
-			put("\r\n");
-		#endif
-	}
-	int get() {
-		#if UNIX_APP
-			int res { std::cin.get() };
-			if (res == 0x04) { res = EOF; }
-		#else
-			constexpr int rx_data { 0x01 };
-			int res = -1;
-			while (res < 0) {
-				res = uart[rx_data];
-			}
-			res = res & 0xff;
-		#endif
-		if (res == '\r') { res = '\n'; }
-		return res;
-	}
-@end(globals)
+@inc(io.md)
 ```
 
 ```
