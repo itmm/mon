@@ -21,11 +21,8 @@ SECTIONS {
 
 	.bss : {
 		*(.data);
-		PROVIDE(__global_pointer$ = . + 0x800);
+		PROVIDE(__global_pointer$ = .);
 		*(.bss);
-	} >ram AT>ram :ram
-
-	.stack : {
 		. = . + 0x400;
 		PROVIDE(_sp = .);
 	} >ram AT>ram :ram
