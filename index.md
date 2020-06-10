@@ -373,7 +373,7 @@
 
 ```
 @def(delete after prev char)
-	put("\x1b[1D\x1b[K");
+	put("\x1b[D\x1b[K");
 @end(delete after prev char)
 ```
 
@@ -551,7 +551,7 @@
 
 ```
 @def(clear whole line)
-	put("\x1b[0E\x1b[2K");
+	put("\x1b[G\x1b[K");
 @end(clear whole line)
 ```
 

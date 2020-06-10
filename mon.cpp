@@ -347,7 +347,7 @@
 			
 #line 375 "index.md"
 
-	put("\x1b[1D\x1b[K");
+	put("\x1b[D\x1b[K");
 
 #line 363 "index.md"
 
@@ -356,7 +356,7 @@
 			
 #line 375 "index.md"
 
-	put("\x1b[1D\x1b[K");
+	put("\x1b[D\x1b[K");
 
 #line 366 "index.md"
 
@@ -638,7 +638,7 @@
 		
 #line 553 "index.md"
 
-	put("\x1b[0E\x1b[2K");
+	put("\x1b[G\x1b[K");
 
 #line 561 "index.md"
 
@@ -748,7 +748,7 @@
 	
 #line 553 "index.md"
 
-	put("\x1b[0E\x1b[2K");
+	put("\x1b[G\x1b[K");
 
 #line 703 "index.md"
 
