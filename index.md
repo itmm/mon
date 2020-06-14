@@ -1,4 +1,6 @@
 # Monitor program
+* monitor program for HiFive1 Rev B01
+* runs also under Unix for testing purposes
 
 ```
 @Def(file: mon.cpp)
@@ -9,21 +11,23 @@
 	}
 @End(file: mon.cpp)
 ```
+* general program structure
 
 ```
 @inc(io.md)
 ```
+* low-level I/O is defined in separate slide-set
 
 ```
 @add(globals)
 	using ulong = unsigned long;
 	using uchr = unsigned char;
-	@put(needed by write addr)
-	static void write_addr(ulong addr) {
-		@put(write addr)
-	}
 @end(globals)
 ```
+* shorthand for often used types
+
+## Start Address
+* define start address for the monitor on the different platforms
 
 ```
 @def(main)
@@ -36,6 +40,9 @@
 	ulong addr { start };
 @end(main)
 ```
+* initialize terminal and define start address
+* start address is defined differently on Unix and RISC-V
+* current address is set to start address
 
 ```
 @def(unix start)
@@ -48,6 +55,9 @@
 	};
 @end(unix start)
 ```
+* on Unix the start address points to a buffer
+* that contains RISC-V object code
+* to test the disassembler
 
 ```
 @def(initial buffer)
@@ -63,6 +73,17 @@
 	"\xb2\x40\x41\x01\x82\x80"
 @end(initial buffer)
 ```
+* first bytes of the `@f(write_addr)` RISC-V implementation
+
+```
+@add(globals)
+	@put(needed by write addr)
+	static void write_addr(ulong addr) {
+		@put(write addr)
+	}
+@end(globals)
+```
+* write a memory address in hexadecimal base
 
 ```
 @def(riscv start)
@@ -73,6 +94,10 @@
 	};
 @end(riscv start)
 ```
+* on RISC-V the real implementation is used as start address
+
+## Main loop
+* main input loop for the monitor
 
 ```
 @add(main)
@@ -82,21 +107,16 @@
 		put("> ");
 		cmd = get();
 		if (cmd == EOF) { break; }
-		@put(eat backspaces)
 		@put(command switch)
 		@mul(unknown cmd)
 	}
 	put("quit"); putnl();
 @end(main)
 ```
-
-```
-@def(eat backspaces)
-	while (cmd == 0x7f) {
-		put('\a'); cmd = get();
-	}
-@end(eat backspaces)
-```
+* current address is printed as a cursor
+* process the commands entered
+* the fallback is a message for unknown commands
+* quitting the monitor is only possible in the Unix version
 
 ```
 @def(unknown cmd)
@@ -107,6 +127,11 @@
 	put(')'); putnl();
 @end(unknown cmd)
 ```
+* errors and warnings are presented with a bell
+* command and ASCII code (in hex) are printed
+
+## Write hexadecimal address
+* writes a memory address to the terminal
 
 ```
 @def(needed by write addr)
@@ -116,6 +141,19 @@
 	}
 @end(needed by write addr)
 ```
+* address is written as sequence of bytes
+
+```
+@def(write addr)
+	int shift { (sizeof(ulong) - 1) * 8 };
+	for (; shift >= 0; shift -= 8) {
+		write_hex_byte(
+			(addr >> shift) & 0xff
+		);
+	}
+@end(write addr)
+```
+* all bytes of the address are written
 
 ```
 @def(needed by write hex byte)
@@ -126,6 +164,20 @@
 	}
 @end(needed by write hex byte)
 ```
+* writing of a nibble is needed to write a byte
+
+```
+@def(write hex byte)
+	if (byte >= 0 && byte <= 255) {
+		write_hex_nibble(byte >> 4);
+		write_hex_nibble(byte & 0xf);
+	} else {
+		put("??");
+	}
+@end(write hex byte)
+```
+* writing a byte by writing its two nibbles
+* bytes out of range written as `??`
 
 ```
 @def(write hex nibble)
@@ -142,28 +194,25 @@
 	}
 @end(write hex nibble)
 ```
+* nibbles are written by index lookup
+
+## Main loop backspace handling
+* handle backspaces in the main loop
 
 ```
-@def(write hex byte)
-	if (byte >= 0 && byte <= 255) {
-		write_hex_nibble(byte >> 4);
-		write_hex_nibble(byte & 0xf);
-	} else {
-		put("??");
+@def(command switch)
+	while (cmd == 0x7f) {
+		put('\a'); cmd = get();
 	}
-@end(write hex byte)
+@end(command switch)
 ```
+* a backspace in the main loop is an error
+* the bell character is raised for each one
+* but no error message is written
+* to avoid cluttering the interface
 
-```
-@def(write addr)
-	int shift { (sizeof(ulong) - 1) * 8 };
-	for (; shift >= 0; shift -= 8) {
-		write_hex_byte(
-			(addr >> shift) & 0xff
-		);
-	}
-@end(write addr)
-```
+## Dump memory
+* dump regions of memory
 
 ```
 @add(globals)
@@ -174,9 +223,11 @@
 	}
 @end(globals)
 ```
+* the number of bytes per row and default number of rows are hard coded
+* the function `@f(dump_hex)` dumps the specified region
 
 ```
-@def(command switch)
+@add(command switch)
 	if (cmd == '\n') {
 		ulong from { addr };
 		addr += default_rows *
@@ -186,10 +237,14 @@
 	}
 @end(command switch)
 ```
+* a simple return press dumps the next default region of memory
+* and increases the current address
+* the `continue` is important
+* otherwise the command will be treated as unknown
 
 ```
 @def(dump hex)
-	put("\x1b[0E\x1b[2K");
+	@mul(clear whole line)
 	if (from && from < to) {
 		for (
 			; from < to;
@@ -201,6 +256,18 @@
 	}
 @end(dump hex)
 ```
+* the current line is cleared
+* and each line is dumped
+* by clearing the line multilple return commands can provide
+  continuous dumps
+
+```
+@def(clear whole line)
+	put("\x1b[G\x1b[K");
+@end(clear whole line)
+```
+* the first escape sequence moves the cursor into the first column
+* the second sequence earses the whole line
 
 ```
 @def(dump hex line)
@@ -216,6 +283,9 @@
 	@put(dump text part)
 @end(dump hex line)
 ```
+* each line consists of the address
+* followed by `:` instead of `>`
+* and the bytes in hexadecimal and ascii notation
 
 ```
 @def(dump hex part) {
@@ -233,6 +303,9 @@
 	}
 } @end(dump hex part)
 ```
+* the line is filled with spaces if not enough bytes for a whole line
+  are present
+* the are padded in groups of 8
 
 ```
 @def(dump text part) {
@@ -249,6 +322,9 @@
 	}
 } @end(dump text part)
 ```
+* only printable characters are written in the ASCII part
+* also missing characters are written as spaces
+* and the same padding is applied as in the hexadecimal block
 
 ```
 @def(pad dump)
@@ -257,6 +333,10 @@
 	) { put(' '); }
 @end(pad dump)
 ```
+* add an additional space every 8 bytes
+
+## Terminal setup
+* initializes the terminal
 
 ```
 @add(includes)
@@ -266,6 +346,8 @@
 	#endif
 @end(includes)
 ```
+* under Unix these headers are needed to switch the terminal into
+  raw mode
 
 ```
 @add(globals)
@@ -283,6 +365,8 @@
 	#endif
 @end(globals)
 ```
+* a class handles the terminal switching under Linux
+* to the terminal can be switched back automatically on destruction
 
 ```
 @def(init term handler)
@@ -294,6 +378,8 @@
 	);
 @end(init term handler)
 ```
+* do not echo characters and use the raw mode
+* safe the original 
 
 ```
 @def(reset term handler)
@@ -302,6 +388,18 @@
 	);
 @end(reset term handler)
 ```
+* restore original mode
+
+```
+@def(init terminal) 
+	#if UNIX_APP
+		Term_Handler term_handler;
+	#else
+		@put(setup riscv terminal)
+	#endif
+@end(init terminal)
+```
+* different setup under Linux and RISC-V
 
 ```
 @add(globals)
@@ -313,50 +411,48 @@
 	#endif
 @end(globals)
 ```
-
-```
-@def(init terminal) 
-	#if UNIX_APP
-		Term_Handler term_handler;
-	#else
-		@put(setup riscv terminal)
-	#endif
-@end(init terminal)
-```
+* base for the clock registers
 
 ```
 @def(setup riscv terminal)
-	constexpr int hfrosccfg { 0x00 };
-	constexpr int hfxosccfg { 0x01 };
+	constexpr int hfrosccfg { 0x00/4 };
+	constexpr int hfxosccfg { 0x04/4 };
 	while (prci[hfxosccfg] >= 0) { }
 	prci[hfrosccfg] &= ~0x40000000;
 @end(setup riscv terminal)
 ```
+* wait for external clock to become ready
+* and disable internal clock afterwards
 
 ```
 @add(setup riscv terminal)
-	constexpr int tx_control { 0x02 };
+	constexpr int tx_control { 0x08/4 };
 	uart[tx_control] |= 1;
-	constexpr int rx_control { 0x03 };
+	constexpr int rx_control { 0x0c/4 };
 	uart[rx_control] |= 1;
+@end(setup riscv terminal)
+```
+* enable UART reading and writing
+
+```
+@add(setup riscv terminal)
 	constexpr int div { 0x18/4 };
-	constexpr int rx_data { 0x01 };
 	uart[div] =
 		(uart[div] & ~0xffff) | 139;
+@end(setup riscv terminal)
+```
+* set the correct divider for 115200 baud rate
+
+```
+@add(setup riscv terminal)
+	constexpr int rx_data { 0x01 };
 	while (uart[rx_data] >= 0) {}
 @end(setup riscv terminal)
 ```
+* discard anything in the input buffer
 
-```
-@add(globals)
-	void write_int(unsigned int v) {
-		if (v >= 10) {
-			write_int(v / 10);
-		}
-		put((v % 10) + '0');
-	}
-@end(globals)
-```
+## More complex memory dump command
+* the `m` memory command allows to specify a start and end address
 
 ```
 @add(globals)
@@ -449,6 +545,19 @@
 
 ```
 @def(needed by addr get)
+	void write_int(unsigned int v) {
+		if (v >= 10) {
+			write_int(v / 10);
+		}
+		put((v % 10) + '0');
+	}
+@end(needed by addr get)
+```
+* writes a decimal number
+* needed for writing escape sequences
+
+```
+@add(needed by addr get)
 	void delete_after_prev_chars(int n) {
 		if (n > 0) {
 			put("\x1b[");
@@ -601,12 +710,6 @@
 ```
 
 ```
-@def(clear whole line)
-	put("\x1b[G\x1b[K");
-@end(clear whole line)
-```
-
-```
 @def(mc before enter 1st)
 	if (cmd == 0x7f) {
 		@mul(clear whole line)
@@ -678,6 +781,8 @@
 	}
 @end(mc done)
 ```
+
+## More commands
 
 ```
 @add(command switch)
