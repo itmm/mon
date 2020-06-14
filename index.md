@@ -58,20 +58,6 @@
 ```
 @add(main)
 	int cmd { 0 };
-	#if ! UNIX_APP
-		put("start with return");
-		putnl();
-		while (
-			cmd != EOF && cmd != '\n'
-		) {
-			cmd = get();
-		}
-	#endif
-@end(main)
-```
-
-```
-@add(main)
 	while (cmd != EOF) {
 		write_addr(addr);
 		put("> ");
@@ -294,15 +280,33 @@
 ```
 
 ```
+@add(globals)
+	#if ! UNIX_APP
+		volatile int *prci {
+			reinterpret_cast<
+				volatile int *
+			>(0x10008000) };
+	#endif
+@end(globals)
+```
+
+```
 @def(init terminal) 
 	#if UNIX_APP
 		Term_Handler term_handler;
 	#else
+		constexpr int hfrosccfg { 0x00 };
+		constexpr int hfxosccfg { 0x01 };
+		while (prci[hfxosccfg] >= 0) { }
+		prci[hfrosccfg] &= ~0x40000000;
+
 		constexpr int tx_control { 0x02 };
 		uart[tx_control] |= 1;
 		constexpr int rx_control { 0x03 };
 		uart[rx_control] |= 1;
+		constexpr int div { 0x18/4 };
 		constexpr int rx_data { 0x01 };
+		uart[div] = (uart[div] & ~0xffff) | 139;
 		while (uart[rx_data] >= 0) {}
 	#endif
 @end(init terminal)
