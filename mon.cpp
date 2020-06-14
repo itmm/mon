@@ -506,17 +506,17 @@
 		entering_2nd
 	};
 
-#line 807 "index.md"
+#line 4 "disassembler.md"
 
 	void write_hex_int(
 		int value, int bytes
 	) {
 		
-#line 817 "index.md"
+#line 14 "disassembler.md"
 
 	if (bytes < 0) {
 		
-#line 832 "index.md"
+#line 29 "disassembler.md"
 
 	if (value < 256) {
 		write_hex_int(value, 1);
@@ -526,7 +526,7 @@
 		write_hex_int(value, 4);
 	}
 
-#line 819 "index.md"
+#line 16 "disassembler.md"
 
 		return;
 	}
@@ -537,16 +537,16 @@
 		);
 	}
 
-#line 811 "index.md"
+#line 8 "disassembler.md"
 
 	}
 
-#line 844 "index.md"
+#line 41 "disassembler.md"
 
 	void write_reg(int reg) {
 		switch (reg) {
 			
-#line 857 "index.md"
+#line 54 "disassembler.md"
 
 	case 0: put("zero"); break;
 	case 1: put("ra"); break;
@@ -560,7 +560,7 @@
 		put('s'); put('0' + reg - 8);
 		break;
 
-#line 873 "index.md"
+#line 70 "disassembler.md"
 
 	case 10: case 11: case 12:
 	case 13: case 14: case 15:
@@ -574,14 +574,14 @@
 		put('s'); write_int(reg - 18 + 2);
 		break;
 
-#line 889 "index.md"
+#line 86 "disassembler.md"
 
 	case 28: case 29: case 30:
 	case 31:
 		put('t'); put('0' + reg - 31 + 3);
 		break;
 
-#line 847 "index.md"
+#line 44 "disassembler.md"
 
 			default:
 				put("?? # ");
@@ -589,7 +589,7 @@
 		}
 	}
 
-#line 33 "disassembler.md"
+#line 124 "disassembler.md"
 
 	void write_hex_bytes(
 		const uchr *bytes,
@@ -850,14 +850,14 @@
 
 	if (cmd == 'd') {
 		
-#line 4 "disassembler.md"
+#line 95 "disassembler.md"
 
 	
 #line 265 "index.md"
 
 	put("\x1b[G\x1b[K");
 
-#line 5 "disassembler.md"
+#line 96 "disassembler.md"
 
 	write_addr(addr);
 	put("  ");
@@ -867,11 +867,11 @@
 	unsigned cmd { 0 };
 	cmd = bytes[0];
 
-#line 17 "disassembler.md"
+#line 108 "disassembler.md"
 
 	if ((cmd & 0x3) != 0x3) {
 		
-#line 47 "disassembler.md"
+#line 138 "disassembler.md"
 
 	write_hex_bytes(bytes, 2);
 	put("       ");
@@ -880,13 +880,13 @@
 		put("db.s $0000 // illegal");
 	}
 	
-#line 63 "disassembler.md"
+#line 154 "disassembler.md"
 
 	else if ((cmd & 0xe003) == 0x0001 &&
 		(cmd & 0x0f80)
 	) {
 		
-#line 73 "disassembler.md"
+#line 164 "disassembler.md"
 
 	auto reg { (cmd & 0x0f80) >> 7 };
 	auto immed { (cmd & 0x007c) >> 2 };
@@ -901,17 +901,17 @@
 	}
 	write_hex_int(immed, -1);
 
-#line 67 "disassembler.md"
+#line 158 "disassembler.md"
 
 	}
 
-#line 90 "disassembler.md"
+#line 181 "disassembler.md"
 
 	else if ((cmd & 0xe003) == 0x4001 &&
 		(cmd & 0x0f80)
 	) {
 		
-#line 100 "disassembler.md"
+#line 191 "disassembler.md"
 
 	auto reg { (cmd & 0x0f80) >> 7 };
 	auto immed { (cmd & 0x007c) >> 2 };
@@ -925,11 +925,11 @@
 	}
 	write_hex_int(immed, -1);
 
-#line 94 "disassembler.md"
+#line 185 "disassembler.md"
 
 	}
 
-#line 116 "disassembler.md"
+#line 207 "disassembler.md"
 
 	else if ((cmd & 0xe003) == 0xc002) {
 		auto reg { (cmd & 0x7c) >> 2 };
@@ -943,7 +943,7 @@
 		write_reg(reg);
 	}
 
-#line 132 "disassembler.md"
+#line 223 "disassembler.md"
 
 	else if ((cmd & 0xe003) == 0x4002) {
 		auto reg { (cmd & 0x0f80) >> 7 };
@@ -958,7 +958,7 @@
 		put(']');
 	}
 
-#line 149 "disassembler.md"
+#line 240 "disassembler.md"
 
 	else if ((cmd & 0xf003) == 0x8002 &&
 		(cmd & 0x007c)
@@ -968,7 +968,7 @@
 		write_reg((cmd & 0x007c) >> 2);
 	}
 
-#line 161 "disassembler.md"
+#line 252 "disassembler.md"
 
 	else if ((cmd & 0xf003) == 0x9002 &&
 		(cmd & 0x007c)
@@ -980,25 +980,25 @@
 		write_reg((cmd & 0x007c) >> 2);
 	}
 
-#line 175 "disassembler.md"
+#line 266 "disassembler.md"
 
 	else if (cmd == 0x8082) {
 		put("ret");
 	}
 
-#line 54 "disassembler.md"
+#line 145 "disassembler.md"
 
 	else {
 		put("db.s $");
 		write_hex_int(cmd, 2);
 	}
 
-#line 19 "disassembler.md"
+#line 110 "disassembler.md"
 
 		addr += 2;
 	} else if ((cmd & 0xc) != 0xc) {
 		
-#line 183 "disassembler.md"
+#line 274 "disassembler.md"
 
 	write_hex_bytes(bytes, 4);
 	put(' ');
@@ -1006,13 +1006,13 @@
 	cmd |= bytes[2] << 16;
 	cmd |= bytes[3] << 24;
 
-#line 193 "disassembler.md"
+#line 284 "disassembler.md"
 
 	if ((cmd & 0xfe00707f) ==
 		0x00005033
 	) {
 		
-#line 207 "disassembler.md"
+#line 298 "disassembler.md"
 
 	write_reg((cmd & 0x00000f80) >> 7);
 	put(" <- ");
@@ -1020,7 +1020,7 @@
 	put(" >> ");
 	write_reg((cmd & 0x01f00000) >> 20);
 
-#line 197 "disassembler.md"
+#line 288 "disassembler.md"
 
 	}
 	else {
@@ -1028,12 +1028,12 @@
 		write_hex_int(cmd, 4);
 	}
 
-#line 22 "disassembler.md"
+#line 113 "disassembler.md"
 
 		addr += 4;
 	} else {
 		
-#line 217 "disassembler.md"
+#line 308 "disassembler.md"
 
 	write_hex_bytes(bytes, 2);
 	put("       ");
@@ -1042,7 +1042,7 @@
 	put(" $");
 	write_hex_byte(bytes[1]);
 
-#line 25 "disassembler.md"
+#line 116 "disassembler.md"
 
 		addr += 2;
 	}
