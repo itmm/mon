@@ -1,0 +1,257 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Disassembler</title>
+<link rel="stylesheet" type="text/css" href="slides/slides.css"></head>
+<body>
+<h1>Disassembler</h1>
+<div class="slides">
+<div class="page">
+<div class="slide"><div class="slide-nr">1</div><div class="headers">
+<h1>Disassembler</h1>
+</div></div>
+</div>
+<div class="page"><div class="slide"><div class="slide-nr">2</div>
+<code>
+<span class="macro">@Def(<span class="name">disassemble</span>)</span><br/>
+<span class="in1"></span><span class="macro">@Mul(<span class="name">clear whole line</span>)</span><br/>
+<span class="in1"></span><span class="fn">write_addr</span>(<span class="var">addr</span>);<br/>
+<span class="in1"></span><span class="fn">put</span>(<span class="str">"  "</span>);<br/>
+<span class="in1"></span><span class="type">const</span> <span class="type">auto</span> <span class="var">bytes</span> { <span class="var">reinterpret_cast</span>&lt;<br/>
+<span class="in2"></span><span class="var">uchr</span> *<br/>
+<span class="in1"></span>&gt;(<span class="var">addr</span>) };<br/>
+<span class="in1"></span><span class="type">unsigned</span> <span class="var">cmd</span> { <span class="num">0</span> };<br/>
+<span class="in1"></span><span class="var">cmd</span> = <span class="var">bytes</span>[<span class="num">0</span>];<br/>
+<span class="macro">@End(<span class="name">disassemble</span>)</span><br/>
+</code></div>
+</div>
+<div class="page"><div class="slide"><div class="slide-nr">3</div>
+<code>
+<span class="macro">@Add(<span class="name">disassemble</span>)</span><br/>
+<span class="in1"></span><span class="keyword">if</span> ((<span class="var">cmd</span> &amp; <span class="num">0x3</span>) != <span class="num">0x3</span>) {<br/>
+<span class="in2"></span><span class="macro">@put(<span class="name">disassemble 16 bit</span>)</span><br/>
+<span class="in2"></span><span class="var">addr</span> += <span class="num">2</span>;<br/>
+<span class="in1"></span>} <span class="keyword">else</span> <span class="keyword">if</span> ((<span class="var">cmd</span> &amp; <span class="num">0xc</span>) != <span class="num">0xc</span>) {<br/>
+<span class="in2"></span><span class="macro">@put(<span class="name">disassemble 32 bit</span>)</span><br/>
+<span class="in2"></span><span class="var">addr</span> += <span class="num">4</span>;<br/>
+<span class="in1"></span>} <span class="keyword">else</span> {<br/>
+<span class="in2"></span><span class="macro">@put(<span class="name">disassemble unknown</span>)</span><br/>
+<span class="in2"></span><span class="var">addr</span> += <span class="num">2</span>;<br/>
+<span class="in1"></span>}<br/>
+<span class="in1"></span><span class="fn">putnl</span>();<br/>
+<span class="macro">@End(<span class="name">disassemble</span>)</span><br/>
+</code></div>
+</div>
+<div class="page"><div class="slide"><div class="slide-nr">4</div>
+<code>
+<span class="macro">@Add(<span class="name">globals</span>)</span><br/>
+<span class="in1"></span><span class="type">void</span> <span class="fn">write_hex_bytes</span>(<br/>
+<span class="in2"></span><span class="type">const</span> <span class="var">uchr</span> *<span class="var">bytes</span>,<br/>
+<span class="in2"></span><span class="type">int</span> <span class="var">count</span><br/>
+<span class="in1"></span>) {<br/>
+<span class="in2"></span><span class="keyword">for</span> (; <span class="var">count</span>; --<span class="var">count</span>, ++<span class="var">bytes</span>) {<br/>
+<span class="in3"></span><span class="fn">write_hex_byte</span>(*<span class="var">bytes</span>);<br/>
+<span class="in3"></span><span class="fn">put</span>(<span class="str">' '</span>);<br/>
+<span class="in2"></span>}<br/>
+<span class="in1"></span>}<br/>
+<span class="macro">@End(<span class="name">globals</span>)</span><br/>
+</code></div>
+</div>
+<div class="page"><div class="slide"><div class="slide-nr">5</div>
+<code>
+<span class="macro">@def(<span class="name">disassemble 16 bit</span>)</span><br/>
+<span class="in1"></span><span class="fn">write_hex_bytes</span>(<span class="var">bytes</span>, <span class="num">2</span>);<br/>
+<span class="in1"></span><span class="fn">put</span>(<span class="str">"       "</span>);<br/>
+<span class="in1"></span><span class="var">cmd</span> |= <span class="var">bytes</span>[<span class="num">1</span>] &lt;&lt; <span class="num">8</span>;<br/>
+<span class="in1"></span><span class="keyword">if</span> (<span class="var">cmd</span> == <span class="num">0x0000</span>) {<br/>
+<span class="in2"></span><span class="fn">put</span>(<span class="str">"db.s $0000 // illegal"</span>);<br/>
+<span class="in1"></span>}<br/>
+<span class="in1"></span><span class="macro">@put(<span class="name">16 bit cases</span>)</span><br/>
+<span class="in1"></span><span class="keyword">else</span> {<br/>
+<span class="in2"></span><span class="fn">put</span>(<span class="str">"db.s $"</span>);<br/>
+<span class="in2"></span><span class="fn">write_hex_int</span>(<span class="var">cmd</span>, <span class="num">2</span>);<br/>
+<span class="in1"></span>}<br/>
+<span class="macro">@end(<span class="name">disassemble 16 bit</span>)</span><br/>
+</code></div>
+</div>
+<div class="page"><div class="slide"><div class="slide-nr">6</div>
+<code>
+<span class="macro">@def(<span class="name">16 bit cases</span>)</span><br/>
+<span class="in1"></span><span class="keyword">else</span> <span class="keyword">if</span> ((<span class="var">cmd</span> &amp; <span class="num">0xe003</span>) == <span class="num">0x0001</span> &amp;&amp;<br/>
+<span class="in2"></span>(<span class="var">cmd</span> &amp; <span class="num">0x0f80</span>)<br/>
+<span class="in1"></span>) {<br/>
+<span class="in2"></span><span class="macro">@put(<span class="name">add immediate 16</span>)</span><br/>
+<span class="in1"></span>}<br/>
+<span class="macro">@end(<span class="name">16 bit cases</span>)</span><br/>
+</code></div>
+</div>
+<div class="page"><div class="slide"><div class="slide-nr">7</div>
+<code>
+<span class="macro">@def(<span class="name">add immediate 16</span>)</span><br/>
+<span class="in1"></span><span class="type">auto</span> <span class="var">reg</span> { (<span class="var">cmd</span> &amp; <span class="num">0x0f80</span>) &gt;&gt; <span class="num">7</span> };<br/>
+<span class="in1"></span><span class="type">auto</span> <span class="var">immed</span> { (<span class="var">cmd</span> &amp; <span class="num">0x007c</span>) &gt;&gt; <span class="num">2</span> };<br/>
+<span class="in1"></span><span class="fn">write_reg</span>(<span class="var">reg</span>);<br/>
+<span class="in1"></span><span class="fn">put</span>(<span class="str">" &lt;- "</span>);<br/>
+<span class="in1"></span><span class="fn">write_reg</span>(<span class="var">reg</span>);<br/>
+<span class="in1"></span><span class="keyword">if</span> (<span class="var">cmd</span> &amp; <span class="num">0x1000</span>) {<br/>
+<span class="in2"></span><span class="var">immed</span> = (~<span class="var">immed</span> + <span class="num">1</span>) &amp; <span class="num">0x1f</span>;<br/>
+<span class="in2"></span><span class="fn">put</span>(<span class="str">" - $"</span>);<br/>
+<span class="in1"></span>} <span class="keyword">else</span> {<br/>
+<span class="in2"></span><span class="fn">put</span>(<span class="str">" + $"</span>);<br/>
+<span class="in1"></span>}<br/>
+<span class="in1"></span><span class="fn">write_hex_int</span>(<span class="var">immed</span>, -<span class="num">1</span>);<br/>
+<span class="macro">@end(<span class="name">add immediate 16</span>)</span><br/>
+</code></div>
+</div>
+<div class="page"><div class="slide"><div class="slide-nr">8</div>
+<code>
+<span class="macro">@add(<span class="name">16 bit cases</span>)</span><br/>
+<span class="in1"></span><span class="keyword">else</span> <span class="keyword">if</span> ((<span class="var">cmd</span> &amp; <span class="num">0xe003</span>) == <span class="num">0x4001</span> &amp;&amp;<br/>
+<span class="in2"></span>(<span class="var">cmd</span> &amp; <span class="num">0x0f80</span>)<br/>
+<span class="in1"></span>) {<br/>
+<span class="in2"></span><span class="macro">@put(<span class="name">set immediate 16</span>)</span><br/>
+<span class="in1"></span>}<br/>
+<span class="macro">@end(<span class="name">16 bit cases</span>)</span><br/>
+</code></div>
+</div>
+<div class="page"><div class="slide"><div class="slide-nr">9</div>
+<code>
+<span class="macro">@def(<span class="name">set immediate 16</span>)</span><br/>
+<span class="in1"></span><span class="type">auto</span> <span class="var">reg</span> { (<span class="var">cmd</span> &amp; <span class="num">0x0f80</span>) &gt;&gt; <span class="num">7</span> };<br/>
+<span class="in1"></span><span class="type">auto</span> <span class="var">immed</span> { (<span class="var">cmd</span> &amp; <span class="num">0x007c</span>) &gt;&gt; <span class="num">2</span> };<br/>
+<span class="in1"></span><span class="fn">write_reg</span>(<span class="var">reg</span>);<br/>
+<span class="in1"></span><span class="fn">put</span>(<span class="str">" &lt;- "</span>);<br/>
+<span class="in1"></span><span class="keyword">if</span> (<span class="var">cmd</span> &amp; <span class="num">0x1000</span>) {<br/>
+<span class="in2"></span><span class="var">immed</span> = (~<span class="var">immed</span> + <span class="num">1</span>) &amp; <span class="num">0x1f</span>;<br/>
+<span class="in2"></span><span class="fn">put</span>(<span class="str">"-$"</span>);<br/>
+<span class="in1"></span>} <span class="keyword">else</span> {<br/>
+<span class="in2"></span><span class="fn">put</span>(<span class="str">'$'</span>);<br/>
+<span class="in1"></span>}<br/>
+<span class="in1"></span><span class="fn">write_hex_int</span>(<span class="var">immed</span>, -<span class="num">1</span>);<br/>
+<span class="macro">@end(<span class="name">set immediate 16</span>)</span><br/>
+</code></div>
+</div>
+<div class="page"><div class="slide"><div class="slide-nr">10</div>
+<code>
+<span class="macro">@add(<span class="name">16 bit cases</span>)</span><br/>
+<span class="in1"></span><span class="keyword">else</span> <span class="keyword">if</span> ((<span class="var">cmd</span> &amp; <span class="num">0xe003</span>) == <span class="num">0xc002</span>) {<br/>
+<span class="in2"></span><span class="type">auto</span> <span class="var">reg</span> { (<span class="var">cmd</span> &amp; <span class="num">0x7c</span>) &gt;&gt; <span class="num">2</span> };<br/>
+<span class="in2"></span><span class="type">auto</span> <span class="var">offset</span> {<br/>
+<span class="in3"></span>((<span class="var">cmd</span> &amp; <span class="num">0x1e00</span>) &gt;&gt; (<span class="num">9</span> - <span class="num">2</span>)) |<br/>
+<span class="in3"></span>((<span class="var">cmd</span> &amp; <span class="num">0x0180</span>) &gt;&gt; (<span class="num">7</span> - <span class="num">6</span>))<br/>
+<span class="in2"></span>};<br/>
+<span class="in2"></span><span class="fn">put</span>(<span class="str">"[sp + $"</span>);<br/>
+<span class="in2"></span><span class="fn">write_hex_int</span>(<span class="var">offset</span>, -<span class="num">1</span>);<br/>
+<span class="in2"></span><span class="fn">put</span>(<span class="str">"] &lt;- "</span>);<br/>
+<span class="in2"></span><span class="fn">write_reg</span>(<span class="var">reg</span>);<br/>
+<span class="in1"></span>}<br/>
+<span class="macro">@end(<span class="name">16 bit cases</span>)</span><br/>
+</code></div>
+</div>
+<div class="page"><div class="slide"><div class="slide-nr">11</div>
+<code>
+<span class="macro">@add(<span class="name">16 bit cases</span>)</span><br/>
+<span class="in1"></span><span class="keyword">else</span> <span class="keyword">if</span> ((<span class="var">cmd</span> &amp; <span class="num">0xe003</span>) == <span class="num">0x4002</span>) {<br/>
+<span class="in2"></span><span class="type">auto</span> <span class="var">reg</span> { (<span class="var">cmd</span> &amp; <span class="num">0x0f80</span>) &gt;&gt; <span class="num">7</span> };<br/>
+<span class="in2"></span><span class="type">auto</span> <span class="var">offset</span> {<br/>
+<span class="in3"></span>((<span class="var">cmd</span> &amp; <span class="num">0x0070</span>) &gt;&gt; (<span class="num">4</span> - <span class="num">2</span>)) |<br/>
+<span class="in3"></span>((<span class="var">cmd</span> &amp; <span class="num">0x000c</span>) &lt;&lt; (<span class="num">6</span> - <span class="num">2</span>)) |<br/>
+<span class="in3"></span>((<span class="var">cmd</span> &amp; <span class="num">0x1000</span>) &gt;&gt; (<span class="num">12</span> - <span class="num">5</span>))<br/>
+<span class="in2"></span>};<br/>
+<span class="in2"></span><span class="fn">write_reg</span>(<span class="var">reg</span>);<br/>
+<span class="in2"></span><span class="fn">put</span>(<span class="str">" &lt;- [sp + $"</span>);<br/>
+<span class="in2"></span><span class="fn">write_hex_int</span>(<span class="var">offset</span>, -<span class="num">1</span>);<br/>
+<span class="in2"></span><span class="fn">put</span>(<span class="str">']'</span>);<br/>
+<span class="in1"></span>}<br/>
+<span class="macro">@end(<span class="name">16 bit cases</span>)</span><br/>
+</code></div>
+</div>
+<div class="page"><div class="slide"><div class="slide-nr">12</div>
+<code>
+<span class="macro">@add(<span class="name">16 bit cases</span>)</span><br/>
+<span class="in1"></span><span class="keyword">else</span> <span class="keyword">if</span> ((<span class="var">cmd</span> &amp; <span class="num">0xf003</span>) == <span class="num">0x8002</span> &amp;&amp;<br/>
+<span class="in2"></span>(<span class="var">cmd</span> &amp; <span class="num">0x007c</span>)<br/>
+<span class="in1"></span>) {<br/>
+<span class="in2"></span><span class="fn">write_reg</span>((<span class="var">cmd</span> &amp; <span class="num">0x0f80</span>) &gt;&gt; <span class="num">7</span>);<br/>
+<span class="in2"></span><span class="fn">put</span>(<span class="str">" &lt;- "</span>);<br/>
+<span class="in2"></span><span class="fn">write_reg</span>((<span class="var">cmd</span> &amp; <span class="num">0x007c</span>) &gt;&gt; <span class="num">2</span>);<br/>
+<span class="in1"></span>}<br/>
+<span class="macro">@end(<span class="name">16 bit cases</span>)</span><br/>
+</code></div>
+</div>
+<div class="page"><div class="slide"><div class="slide-nr">13</div>
+<code>
+<span class="macro">@add(<span class="name">16 bit cases</span>)</span><br/>
+<span class="in1"></span><span class="keyword">else</span> <span class="keyword">if</span> ((<span class="var">cmd</span> &amp; <span class="num">0xf003</span>) == <span class="num">0x9002</span> &amp;&amp;<br/>
+<span class="in2"></span>(<span class="var">cmd</span> &amp; <span class="num">0x007c</span>)<br/>
+<span class="in1"></span>) {<br/>
+<span class="in2"></span><span class="fn">write_reg</span>((<span class="var">cmd</span> &amp; <span class="num">0x0f80</span>) &gt;&gt; <span class="num">7</span>);<br/>
+<span class="in2"></span><span class="fn">put</span>(<span class="str">" &lt;- "</span>);<br/>
+<span class="in2"></span><span class="fn">write_reg</span>((<span class="var">cmd</span> &amp; <span class="num">0x0f80</span>) &gt;&gt; <span class="num">7</span>);<br/>
+<span class="in2"></span><span class="fn">put</span>(<span class="str">" + "</span>);<br/>
+<span class="in2"></span><span class="fn">write_reg</span>((<span class="var">cmd</span> &amp; <span class="num">0x007c</span>) &gt;&gt; <span class="num">2</span>);<br/>
+<span class="in1"></span>}<br/>
+<span class="macro">@end(<span class="name">16 bit cases</span>)</span><br/>
+</code></div>
+</div>
+<div class="page"><div class="slide"><div class="slide-nr">14</div>
+<code>
+<span class="macro">@add(<span class="name">16 bit cases</span>)</span><br/>
+<span class="in1"></span><span class="keyword">else</span> <span class="keyword">if</span> (<span class="var">cmd</span> == <span class="num">0x8082</span>) {<br/>
+<span class="in2"></span><span class="fn">put</span>(<span class="str">"ret"</span>);<br/>
+<span class="in1"></span>}<br/>
+<span class="macro">@end(<span class="name">16 bit cases</span>)</span><br/>
+</code></div>
+</div>
+<div class="page"><div class="slide"><div class="slide-nr">15</div>
+<code>
+<span class="macro">@def(<span class="name">disassemble 32 bit</span>)</span><br/>
+<span class="in1"></span><span class="fn">write_hex_bytes</span>(<span class="var">bytes</span>, <span class="num">4</span>);<br/>
+<span class="in1"></span><span class="fn">put</span>(<span class="str">' '</span>);<br/>
+<span class="in1"></span><span class="var">cmd</span> |= <span class="var">bytes</span>[<span class="num">1</span>] &lt;&lt; <span class="num">8</span>;<br/>
+<span class="in1"></span><span class="var">cmd</span> |= <span class="var">bytes</span>[<span class="num">2</span>] &lt;&lt; <span class="num">16</span>;<br/>
+<span class="in1"></span><span class="var">cmd</span> |= <span class="var">bytes</span>[<span class="num">3</span>] &lt;&lt; <span class="num">24</span>;<br/>
+<span class="macro">@end(<span class="name">disassemble 32 bit</span>)</span><br/>
+</code></div>
+</div>
+<div class="page"><div class="slide"><div class="slide-nr">16</div>
+<code>
+<span class="macro">@add(<span class="name">disassemble 32 bit</span>)</span><br/>
+<span class="in1"></span><span class="keyword">if</span> ((<span class="var">cmd</span> &amp; <span class="num">0xfe00707f</span>) ==<br/>
+<span class="in2"></span><span class="num">0x00005033</span><br/>
+<span class="in1"></span>) {<br/>
+<span class="in2"></span><span class="macro">@put(<span class="name">shift right</span>)</span><br/>
+<span class="in1"></span>}<br/>
+<span class="in1"></span><span class="keyword">else</span> {<br/>
+<span class="in2"></span><span class="fn">put</span>(<span class="str">"db.w $"</span>);<br/>
+<span class="in2"></span><span class="fn">write_hex_int</span>(<span class="var">cmd</span>, <span class="num">4</span>);<br/>
+<span class="in1"></span>}<br/>
+<span class="macro">@end(<span class="name">disassemble 32 bit</span>)</span><br/>
+</code></div>
+</div>
+<div class="page"><div class="slide"><div class="slide-nr">17</div>
+<code>
+<span class="macro">@def(<span class="name">shift right</span>)</span><br/>
+<span class="in1"></span><span class="fn">write_reg</span>((<span class="var">cmd</span> &amp; <span class="num">0x00000f80</span>) &gt;&gt; <span class="num">7</span>);<br/>
+<span class="in1"></span><span class="fn">put</span>(<span class="str">" &lt;- "</span>);<br/>
+<span class="in1"></span><span class="fn">write_reg</span>((<span class="var">cmd</span> &amp; <span class="num">0x000f8000</span>) &gt;&gt; <span class="num">15</span>);<br/>
+<span class="in1"></span><span class="fn">put</span>(<span class="str">" &gt;&gt; "</span>);<br/>
+<span class="in1"></span><span class="fn">write_reg</span>((<span class="var">cmd</span> &amp; <span class="num">0x01f00000</span>) &gt;&gt; <span class="num">20</span>);<br/>
+<span class="macro">@end(<span class="name">shift right</span>)</span><br/>
+</code></div>
+</div>
+<div class="page"><div class="slide"><div class="slide-nr">18</div>
+<code>
+<span class="macro">@def(<span class="name">disassemble unknown</span>)</span><br/>
+<span class="in1"></span><span class="fn">write_hex_bytes</span>(<span class="var">bytes</span>, <span class="num">2</span>);<br/>
+<span class="in1"></span><span class="fn">put</span>(<span class="str">"       "</span>);<br/>
+<span class="in1"></span><span class="fn">put</span>(<span class="str">"db.b $"</span>);<br/>
+<span class="in1"></span><span class="fn">write_hex_byte</span>(<span class="var">bytes</span>[<span class="num">0</span>]);<br/>
+<span class="in1"></span><span class="fn">put</span>(<span class="str">" $"</span>);<br/>
+<span class="in1"></span><span class="fn">write_hex_byte</span>(<span class="var">bytes</span>[<span class="num">1</span>]);<br/>
+<span class="macro">@end(<span class="name">disassemble unknown</span>)</span><br/>
+</code></div>
+</div>
+</body>
+</html>

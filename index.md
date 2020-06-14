@@ -17,6 +17,7 @@
 ```
 @add(globals)
 	using ulong = unsigned long;
+	using uchr = unsigned char;
 	@put(needed by write addr)
 	static void write_addr(ulong addr) {
 		@put(write addr)
@@ -28,31 +29,49 @@
 @def(main)
 	@put(init terminal)
 	#if UNIX_APP
-		char buffer[] =
-			"\x41\x11\x06\xc6\x22\xc4"
-			"\x26\xc2\x4a\xc0\x2a\x84"
-			"\xe1\x44\x7d\x59"
-			"\x33\x55\x94\x00"
-			"\x13\x75\xf5\x0f"
-			"\x97\x00\x00\x00"
-			"\xe7\x80\xa0\x01"
-			"\xe1\x14\xe3\x47\x99\xfe"
-			"\x02\x49\x92\x44\x22\x44"
-			"\xb2\x40\x41\x01\x82\x80";
+		@put(unix start)
+	#else
+		@put(riscv start)
+	#endif
+	ulong addr { start };
+@end(main)
+```
+
+```
+@def(unix start)
+	char buffer[] = ""
+		@put(initial buffer);
 	const ulong start {
 		reinterpret_cast<ulong>(
 			buffer
 		)
 	};
-	#else
+@end(unix start)
+```
+
+```
+@def(initial buffer)
+	"\x41\x11\x06\xc6\x22\xc4"
+	"\x26\xc2\x4a\xc0\x2a\x84"
+	"\xe1\x44\x7d\x59"
+	"\x33\x55\x94\x00"
+	"\x13\x75\xf5\x0f"
+	"\x97\x00\x00\x00"
+	"\xe7\x80\xa0\x01"
+	"\xe1\x14\xe3\x47\x99\xfe"
+	"\x02\x49\x92\x44\x22\x44"
+	"\xb2\x40\x41\x01\x82\x80"
+@end(initial buffer)
+```
+
+```
+@def(riscv start)
 	const ulong start {
 		reinterpret_cast<ulong>(
 			write_addr
 		)
 	};
-	#endif
-	ulong addr { start };
-@end(main)
+@end(riscv start)
 ```
 
 ```
@@ -63,15 +82,20 @@
 		put("> ");
 		cmd = get();
 		if (cmd == EOF) { break; }
-		while (cmd == 0x7f) {
-			put('\a');
-			cmd = get();
-		}
+		@put(eat backspaces)
 		@put(command switch)
 		@mul(unknown cmd)
 	}
 	put("quit"); putnl();
 @end(main)
+```
+
+```
+@def(eat backspaces)
+	while (cmd == 0x7f) {
+		put('\a'); cmd = get();
+	}
+@end(eat backspaces)
 ```
 
 ```
@@ -295,21 +319,32 @@
 	#if UNIX_APP
 		Term_Handler term_handler;
 	#else
-		constexpr int hfrosccfg { 0x00 };
-		constexpr int hfxosccfg { 0x01 };
-		while (prci[hfxosccfg] >= 0) { }
-		prci[hfrosccfg] &= ~0x40000000;
-
-		constexpr int tx_control { 0x02 };
-		uart[tx_control] |= 1;
-		constexpr int rx_control { 0x03 };
-		uart[rx_control] |= 1;
-		constexpr int div { 0x18/4 };
-		constexpr int rx_data { 0x01 };
-		uart[div] = (uart[div] & ~0xffff) | 139;
-		while (uart[rx_data] >= 0) {}
+		@put(setup riscv terminal)
 	#endif
 @end(init terminal)
+```
+
+```
+@def(setup riscv terminal)
+	constexpr int hfrosccfg { 0x00 };
+	constexpr int hfxosccfg { 0x01 };
+	while (prci[hfxosccfg] >= 0) { }
+	prci[hfrosccfg] &= ~0x40000000;
+@end(setup riscv terminal)
+```
+
+```
+@add(setup riscv terminal)
+	constexpr int tx_control { 0x02 };
+	uart[tx_control] |= 1;
+	constexpr int rx_control { 0x03 };
+	uart[rx_control] |= 1;
+	constexpr int div { 0x18/4 };
+	constexpr int rx_data { 0x01 };
+	uart[div] =
+		(uart[div] & ~0xffff) | 139;
+	while (uart[rx_data] >= 0) {}
+@end(setup riscv terminal)
 ```
 
 ```
@@ -334,6 +369,11 @@
 		unsigned digits { 0 };
 		ulong get(int &cmd);
 	};
+@end(globals)
+```
+
+```
+@add(globals)
 	@put(needed by addr get)
 	ulong Addr_State::get(int &cmd) {
 		@put(get addr)
@@ -368,8 +408,7 @@
 			relative = negative = false;
 		} else {
 			@mul(delete after prev char)
-			--digits;
-			value = value >> 4;
+			--digits; value = value >> 4;
 		}
 		break;
 @end(get addr chars)
@@ -523,7 +562,9 @@
 
 ```
 @def(memory command)
-	MC_State state { MC_State::before_enter_1st };
+	MC_State state {
+		MC_State::before_enter_1st
+	};
 	put("memory ");
 	cmd = get();
 	Addr_State from;
@@ -537,20 +578,26 @@
 @add(memory command)
 	bool done { false };
 	while (! done) { switch (state) {
-		case MC_State::before_enter_1st:
-			@put(mc before enter 1st)
-			break;
-		case MC_State::entering_1st:
-			@put(mc entering 1st)
-			break;
-		case MC_State::after_entering_1st:
-			@put(mc after entering 1st)
-			break;
-		case MC_State::entering_2nd:
-			@put(mc entering 2nd)
-			break;
+		@put(memory command cases)
 	} }
 @end(memory command)
+```
+
+```
+@def(memory command cases)
+	case MC_State::before_enter_1st:
+		@put(mc before enter 1st)
+		break;
+	case MC_State::entering_1st:
+		@put(mc entering 1st)
+		break;
+	case MC_State::after_entering_1st:
+		@put(mc after entering 1st)
+		break;
+	case MC_State::entering_2nd:
+		@put(mc entering 2nd)
+		break;
+@end(memory command cases)
 ```
 
 ```
@@ -597,9 +644,7 @@
 		state = MC_State::entering_1st;
 	} else {
 		put(inter);
-		if (cmd == '.') {
-			cmd = get();
-		}
+		if (cmd == '.') { cmd = get(); }
 		state = MC_State::entering_2nd;
 	}
 } @end(mc after entering 1st)
@@ -616,8 +661,7 @@
 			@put(mc done)
 			done = true;
 		} else {
-			put('\a');
-			cmd = get();
+			put('\a'); cmd = get();
 		}
 	}
 @end(mc entering 2nd)
@@ -656,165 +700,96 @@
 
 ```
 @add(globals)
-	void write_hex_int(int value, int bytes) {
-		if (bytes < 0) {
-			if (value < 256) { write_hex_int(value, 1); }
-			else if (value < 0x10000) { write_hex_int(value, 2); }
-			else { write_hex_int(value, 4); }
-			return;
-		}
-		for (; bytes; --bytes) {
-			write_hex_byte((value >> (8 * (bytes - 1))) & 0xff);
-		}
+	void write_hex_int(
+		int value, int bytes
+	) {
+		@put(write hex int)
 	}
 @end(globals)
+```
+
+```
+@def(write hex int)
+	if (bytes < 0) {
+		@put(write dynamic hex int)
+		return;
+	}
+	for (; bytes; --bytes) {
+		write_hex_byte(
+			(value >> (8 * (bytes - 1))) &
+			0xff
+		);
+	}
+@end(write hex int)
+```
+
+```
+@def(write dynamic hex int)
+	if (value < 256) {
+		write_hex_int(value, 1);
+	} else if (value < 0x10000) {
+		write_hex_int(value, 2);
+	} else {
+		write_hex_int(value, 4);
+	}
+@end(write dynamic hex int)
 ```
 
 ```
 @add(globals)
 	void write_reg(int reg) {
 		switch (reg) {
-			case 0: put("zero"); break;
-			case 1: put("ra"); break;
-			case 2: put("sp"); break;
-			case 3: put("gp"); break;
-			case 4: put("tp"); break;
-			case 5: case 6: case 7:
-				put('t'); put('0' + reg - 5); break;
-			case 8: case 9:
-				put('s'); put('0' + reg - 8); break;
-			case 10: case 11: case 12:
-			case 13: case 14: case 15:
-			case 16: case 17:
-				put('a'); put('0' + reg - 10); break;
-			case 18: case 19: case 20:
-			case 21: case 22: case 23:
-			case 24: case 25: case 26:
-			case 27:
-				put('s'); write_int(reg - 18 + 2); break;
-			case 28: case 29: case 30:
-			case 31:
-				put('t'); put('0' + reg - 31 + 3); break;
+			@put(write reg cases)
 			default:
-				put("?? # "); write_int(reg);
+				put("?? # ");
+				write_int(reg);
 		}
 	}
 @end(globals)
 ```
 
 ```
-@def(disassemble)
-	@mul(clear whole line)
-	write_addr(addr);
-	put("  ");
-	const auto bytes { reinterpret_cast<
-		unsigned char *
-	>(addr) };
-	unsigned cmd { 0 };
-	cmd = bytes[0];
-	if ((cmd & 0x3) != 0x3) {
-		cmd |= bytes[1] << 8;
-			
-		write_hex_byte(bytes[0]);
-		put(' ');
-		write_hex_byte(bytes[1]);
-		put("        ");
-		if (cmd == 0x0000) {
-			put("db.s $0000 # illegal");
-		} else if ((cmd & 0xe003) == 0x0001 && (cmd & 0x0f80) != 0) {
-			auto reg { (cmd & 0x0f80) >> 7 };
-			auto immed { (cmd & 0x007c) >> 2 };
-			write_reg(reg);
-			put(" <- ");
-			write_reg(reg);
-			if (cmd & 0x1000) {
-				immed = (~immed + 1) & 0x1f;
-				put(" - $");
-			} else {
-				put(" + $");
-			}
-			write_hex_int(immed, -1);
-		} else if ((cmd & 0xe003) == 0x4001 && (cmd & 0x0f80) != 0) {
-			auto reg { (cmd & 0x0f80) >> 7 };
-			auto immed { (cmd & 0x007c) >> 2 };
-			write_reg(reg);
-			put(" <- ");
-			if (cmd & 0x1000) {
-				immed = (~immed + 1) & 0x1f;
-				put("-$");
-			} else {
-				put('$');
-			}
-			write_hex_int(immed, -1);
-		} else if ((cmd & 0xe003) == 0xc002) {
-			auto reg { (cmd & 0x7c) >> 2 };
-			auto offset { ((cmd & 0x1e00) >> (9 - 2)) | ((cmd & 0x0180) >> (7 - 6)) };
-			put("[sp + $");
-			write_hex_int(offset, -1);
-			put("] <- ");
-			write_reg(reg);
-		} else if ((cmd & 0xe003) == 0x4002) {
-			auto reg { (cmd & 0x0f80) >> 7 };
-			auto offset { ((cmd & 0x0070) >> (4 - 2)) | ((cmd & 0x000c) << (6 - 2)) | ((cmd & 0x1000) >> (12 - 5)) };
-			write_reg(reg);
-			put(" <- [sp + $");
-			write_hex_int(offset, -1);
-			put(']');
-		} else if ((cmd & 0xf003) == 0x8002 && (cmd & 0x007c) != 0) {
-			write_reg((cmd & 0x0f80) >> 7);
-			put(" <- ");
-			write_reg((cmd & 0x007c) >> 2);
-			
-		} else if ((cmd & 0xf003) == 0x9002 && (cmd & 0x007c) != 0) {
-			write_reg((cmd & 0x0f80) >> 7);
-			put(" <- ");
-			write_reg((cmd & 0x0f80) >> 7);
-			put(" + ");
-			write_reg((cmd & 0x007c) >> 2);
-			
-		} else if (cmd == 0x8082) {
-			put("ret");
-		} else {
-			put("db.s $");
-			write_hex_int(cmd, 2);
-		}
-		putnl();
-		addr += 2;
-	} else if ((cmd & 0xc) != 0xc) {
-		cmd |= bytes[1] << 8;
-		cmd |= bytes[2] << 16;
-		cmd |= bytes[3] << 24;
-		write_hex_byte(bytes[0]);
-		put(' ');
-		write_hex_byte(bytes[1]);
-		put(' ');
-		write_hex_byte(bytes[2]);
-		put(' ');
-		write_hex_byte(bytes[3]);
-		put("  ");
-		if ((cmd & 0xfe00707f) == 0x00005033) {
-			write_reg((cmd & 0x00000f80) >> 7);
-			put(" <- ");
-			write_reg((cmd & 0x000f8000) >> 15);
-			put(" >> ");
-			write_reg((cmd & 0x01f00000) >> 20);
-		} else {
-			put("db.w $");
-			write_hex_int(cmd, 4);
-		}
-		putnl();
-		addr += 4;
-	} else {
-		write_hex_byte(bytes[0]);
-		put(' ');
-		write_hex_byte(bytes[1]);
-		put("        ");
-		put("db.b $");
-		write_hex_byte(bytes[0]);
-		put(" $");
-		write_hex_byte(bytes[1]);
-		putnl();
-		addr += 2;
-	}
-@end(disassemble)
+@def(write reg cases)
+	case 0: put("zero"); break;
+	case 1: put("ra"); break;
+	case 2: put("sp"); break;
+	case 3: put("gp"); break;
+	case 4: put("tp"); break;
+	case 5: case 6: case 7:
+		put('t'); put('0' + reg - 5);
+		break;
+	case 8: case 9:
+		put('s'); put('0' + reg - 8);
+		break;
+@end(write reg cases)
 ```
+
+```
+@add(write reg cases)
+	case 10: case 11: case 12:
+	case 13: case 14: case 15:
+	case 16: case 17:
+		put('a'); put('0' + reg - 10);
+		break;
+	case 18: case 19: case 20:
+	case 21: case 22: case 23:
+	case 24: case 25: case 26:
+	case 27:
+		put('s'); write_int(reg - 18 + 2);
+		break;
+@end(write reg cases)
+```
+
+```
+@add(write reg cases)
+	case 28: case 29: case 30:
+	case 31:
+		put('t'); put('0' + reg - 31 + 3);
+		break;
+@end(write reg cases)
+```
+
+```
+@inc(disassembler.md)
+```
+

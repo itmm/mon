@@ -7,7 +7,7 @@ CC = clang-9
 CXX = clang++-9
 LD = ld.lld-9
 
-CXXFLAGS += -Wall -std=c++17 -Os
+CXXFLAGS += -Wall --pedantic -std=c++17 -Os
 RISCARCH = --target=riscv32 -march=rv32imac
 RISCFLAGS = $(CXXFLAGS) -fno-exceptions $(RISCARCH)
 
