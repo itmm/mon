@@ -1074,7 +1074,7 @@
 		0x00005033
 	) {
 		
-#line 370 "disassembler.md"
+#line 371 "disassembler.md"
 
 	write_reg((cmd & 0x00000f80) >> 7);
 	put(" <- ");
@@ -1085,6 +1085,81 @@
 #line 359 "disassembler.md"
 
 	}
+	
+#line 394 "disassembler.md"
+
+	else if ((cmd & 0x0000707f) ==
+		0x00007013) {
+		write_reg(
+			(cmd & 0x00000f80) >> 7
+		);
+		put(" <- ");
+		write_reg(
+			(cmd & 0x000f8000) >> 14
+		);
+		put(" and $");
+		write_hex_int(
+			(cmd & 0xfff00000) >> 20, -1
+		);
+	}
+
+#line 414 "disassembler.md"
+
+	else if ((cmd & 0x0000007f) ==
+		0x00000037) {
+		write_reg(
+			(cmd & 0x00000f80) >> 7
+		);
+		put(" <- $");
+		write_addr(cmd & 0xfffff000);
+	}
+
+#line 428 "disassembler.md"
+
+	else if ((cmd & 0x0000007f) ==
+		0x00000017) {
+		write_reg(
+			(cmd & 0x00000f80) >> 7
+		);
+		put(" <- %pc ");
+		ulong target;
+		if (cmd & 0x80000000) {
+			put("- $");
+			write_addr(-(cmd & 0x7ffff000) & 0x7ffff000);
+			target = addr - (cmd & 0x7ffff000);
+		} else {
+			put("+ $");
+			write_addr(cmd & 0x7ffff000);
+			target = addr + (cmd & 0x7ffff000);
+		}
+		put(" // $");
+		write_addr(target);
+	}
+
+#line 453 "disassembler.md"
+
+	else if ((cmd & 0x0000707f) ==
+		0x00000067) {
+		write_reg(
+			(cmd & 0x00000f80) >> 7
+		);
+		put(", %pc <- %pc + $04, %pc ");
+		ulong target;
+		if (cmd & 0x80000000) {
+			put("- $");
+			write_hex_int(-(cmd >> 20) & 0x3ff, -1);
+			target = addr - ((cmd >> 20) & 0x3ff);
+		} else {
+			put("+ $");
+			write_hex_int((cmd >> 20) & 0x3ff, -1);
+			target = addr + ((cmd >> 20) & 0x3ff);
+		}
+		put(" // $");
+		write_addr(target);
+	}
+
+#line 361 "disassembler.md"
+
 	else {
 		put("db.w $");
 		write_hex_int(cmd, 4);
@@ -1095,7 +1170,7 @@
 		addr += 4;
 	} else {
 		
-#line 381 "disassembler.md"
+#line 382 "disassembler.md"
 
 	write_hex_bytes(bytes, 2);
 	put("       ");

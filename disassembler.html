@@ -460,6 +460,7 @@ and generate full command
 <span class="in1"></span>) {<br/>
 <span class="in2"></span><span class="macro">@put(<span class="name">shift right</span>)</span><br/>
 <span class="in1"></span>}<br/>
+<span class="in1"></span><span class="macro">@put(<span class="name">32 bit cases</span>)</span><br/>
 <span class="in1"></span><span class="keyword">else</span> {<br/>
 <span class="in2"></span><span class="fn">put</span>(<span class="str">"db.w $"</span>);<br/>
 <span class="in2"></span><span class="fn">write_hex_int</span>(<span class="var">cmd</span>, <span class="num">4</span>);<br/>
@@ -497,6 +498,102 @@ disassemble <code><span class="var">reg</span> &lt;- <span class="var">reg</span
 </code></div>
 <ul><li>
 write unknown 32 bit sequence
+</li></ul>
+</div>
+<div class="page"><div class="slide"><div class="slide-nr">32</div>
+<code>
+<span class="macro">@def(<span class="name">32 bit cases</span>)</span><br/>
+<span class="in1"></span><span class="keyword">else</span> <span class="keyword">if</span> ((<span class="var">cmd</span> &amp; <span class="num">0x0000707f</span>) ==<br/>
+<span class="in2"></span><span class="num">0x00007013</span>) {<br/>
+<span class="in2"></span><span class="fn">write_reg</span>(<br/>
+<span class="in3"></span>(<span class="var">cmd</span> &amp; <span class="num">0x00000f80</span>) &gt;&gt; <span class="num">7</span><br/>
+<span class="in2"></span>);<br/>
+<span class="in2"></span><span class="fn">put</span>(<span class="str">" &lt;- "</span>);<br/>
+<span class="in2"></span><span class="fn">write_reg</span>(<br/>
+<span class="in3"></span>(<span class="var">cmd</span> &amp; <span class="num">0x000f8000</span>) &gt;&gt; <span class="num">14</span><br/>
+<span class="in2"></span>);<br/>
+<span class="in2"></span><span class="fn">put</span>(<span class="str">" and $"</span>);<br/>
+<span class="in2"></span><span class="fn">write_hex_int</span>(<br/>
+<span class="in3"></span>(<span class="var">cmd</span> &amp; <span class="num">0xfff00000</span>) &gt;&gt; <span class="num">20</span>, -<span class="num">1</span><br/>
+<span class="in2"></span>);<br/>
+<span class="in1"></span>}<br/>
+<span class="macro">@end(<span class="name">32 bit cases</span>)</span><br/>
+</code></div>
+<ul><li>
+disassemble <code><span class="var">reg</span> &lt;- <span class="var">reg</span> <span class="var">and</span> <span class="var">immediate</span></code>
+</li></ul>
+</div>
+<div class="page"><div class="slide"><div class="slide-nr">33</div>
+<code>
+<span class="macro">@add(<span class="name">32 bit cases</span>)</span><br/>
+<span class="in1"></span><span class="keyword">else</span> <span class="keyword">if</span> ((<span class="var">cmd</span> &amp; <span class="num">0x0000007f</span>) ==<br/>
+<span class="in2"></span><span class="num">0x00000037</span>) {<br/>
+<span class="in2"></span><span class="fn">write_reg</span>(<br/>
+<span class="in3"></span>(<span class="var">cmd</span> &amp; <span class="num">0x00000f80</span>) &gt;&gt; <span class="num">7</span><br/>
+<span class="in2"></span>);<br/>
+<span class="in2"></span><span class="fn">put</span>(<span class="str">" &lt;- $"</span>);<br/>
+<span class="in2"></span><span class="fn">write_addr</span>(<span class="var">cmd</span> &amp; <span class="num">0xfffff000</span>);<br/>
+<span class="in1"></span>}<br/>
+<span class="macro">@end(<span class="name">32 bit cases</span>)</span><br/>
+</code></div>
+<ul><li>
+disassemble <code><span class="var">reg</span> &lt;- <span class="var">immediate</span></code>
+</li></ul>
+</div>
+<div class="page"><div class="slide"><div class="slide-nr">34</div>
+<code>
+<span class="macro">@add(<span class="name">32 bit cases</span>)</span><br/>
+<span class="in1"></span><span class="keyword">else</span> <span class="keyword">if</span> ((<span class="var">cmd</span> &amp; <span class="num">0x0000007f</span>) ==<br/>
+<span class="in2"></span><span class="num">0x00000017</span>) {<br/>
+<span class="in2"></span><span class="fn">write_reg</span>(<br/>
+<span class="in3"></span>(<span class="var">cmd</span> &amp; <span class="num">0x00000f80</span>) &gt;&gt; <span class="num">7</span><br/>
+<span class="in2"></span>);<br/>
+<span class="in2"></span><span class="fn">put</span>(<span class="str">" &lt;- %pc "</span>);<br/>
+<span class="in2"></span><span class="var">ulong</span> <span class="var">target</span>;<br/>
+<span class="in2"></span><span class="keyword">if</span> (<span class="var">cmd</span> &amp; <span class="num">0x80000000</span>) {<br/>
+<span class="in3"></span><span class="fn">put</span>(<span class="str">"- $"</span>);<br/>
+<span class="in3"></span><span class="fn">write_addr</span>(-(<span class="var">cmd</span> &amp; <span class="num">0x7ffff000</span>) &amp; <span class="num">0x7ffff000</span>);<br/>
+<span class="in3"></span><span class="var">target</span> = <span class="var">addr</span> - (<span class="var">cmd</span> &amp; <span class="num">0x7ffff000</span>);<br/>
+<span class="in2"></span>} <span class="keyword">else</span> {<br/>
+<span class="in3"></span><span class="fn">put</span>(<span class="str">"+ $"</span>);<br/>
+<span class="in3"></span><span class="fn">write_addr</span>(<span class="var">cmd</span> &amp; <span class="num">0x7ffff000</span>);<br/>
+<span class="in3"></span><span class="var">target</span> = <span class="var">addr</span> + (<span class="var">cmd</span> &amp; <span class="num">0x7ffff000</span>);<br/>
+<span class="in2"></span>}<br/>
+<span class="in2"></span><span class="fn">put</span>(<span class="str">" // $"</span>);<br/>
+<span class="in2"></span><span class="fn">write_addr</span>(<span class="var">target</span>);<br/>
+<span class="in1"></span>}<br/>
+<span class="macro">@end(<span class="name">32 bit cases</span>)</span><br/>
+</code></div>
+<ul><li>
+disassemble <code><span class="var">reg</span> &lt;- %<span class="var">pc</span> + <span class="var">immediate</span></code>
+</li></ul>
+</div>
+<div class="page"><div class="slide"><div class="slide-nr">35</div>
+<code>
+<span class="macro">@add(<span class="name">32 bit cases</span>)</span><br/>
+<span class="in1"></span><span class="keyword">else</span> <span class="keyword">if</span> ((<span class="var">cmd</span> &amp; <span class="num">0x0000707f</span>) ==<br/>
+<span class="in2"></span><span class="num">0x00000067</span>) {<br/>
+<span class="in2"></span><span class="fn">write_reg</span>(<br/>
+<span class="in3"></span>(<span class="var">cmd</span> &amp; <span class="num">0x00000f80</span>) &gt;&gt; <span class="num">7</span><br/>
+<span class="in2"></span>);<br/>
+<span class="in2"></span><span class="fn">put</span>(<span class="str">", %pc &lt;- %pc + $04, %pc "</span>);<br/>
+<span class="in2"></span><span class="var">ulong</span> <span class="var">target</span>;<br/>
+<span class="in2"></span><span class="keyword">if</span> (<span class="var">cmd</span> &amp; <span class="num">0x80000000</span>) {<br/>
+<span class="in3"></span><span class="fn">put</span>(<span class="str">"- $"</span>);<br/>
+<span class="in3"></span><span class="fn">write_hex_int</span>(-(<span class="var">cmd</span> &gt;&gt; <span class="num">20</span>) &amp; <span class="num">0x3ff</span>, -<span class="num">1</span>);<br/>
+<span class="in3"></span><span class="var">target</span> = <span class="var">addr</span> - ((<span class="var">cmd</span> &gt;&gt; <span class="num">20</span>) &amp; <span class="num">0x3ff</span>);<br/>
+<span class="in2"></span>} <span class="keyword">else</span> {<br/>
+<span class="in3"></span><span class="fn">put</span>(<span class="str">"+ $"</span>);<br/>
+<span class="in3"></span><span class="fn">write_hex_int</span>((<span class="var">cmd</span> &gt;&gt; <span class="num">20</span>) &amp; <span class="num">0x3ff</span>, -<span class="num">1</span>);<br/>
+<span class="in3"></span><span class="var">target</span> = <span class="var">addr</span> + ((<span class="var">cmd</span> &gt;&gt; <span class="num">20</span>) &amp; <span class="num">0x3ff</span>);<br/>
+<span class="in2"></span>}<br/>
+<span class="in2"></span><span class="fn">put</span>(<span class="str">" // $"</span>);<br/>
+<span class="in2"></span><span class="fn">write_addr</span>(<span class="var">target</span>);<br/>
+<span class="in1"></span>}<br/>
+<span class="macro">@end(<span class="name">32 bit cases</span>)</span><br/>
+</code></div>
+<ul><li>
+disassemble <code><span class="var">reg</span>, %<span class="var">pc</span> &lt;- %<span class="var">pc</span> + <span class="var">$04</span>, %<span class="var">pc</span> + <span class="var">immediate</span></code>
 </li></ul>
 </div>
 </body>
