@@ -358,7 +358,7 @@ handle negative immediate by negating the value
 <span class="in3"></span>((<span class="var">cmd</span> &amp; <span class="num">0x1e00</span>) &gt;&gt; (<span class="num">9</span> - <span class="num">2</span>)) |<br/>
 <span class="in3"></span>((<span class="var">cmd</span> &amp; <span class="num">0x0180</span>) &gt;&gt; (<span class="num">7</span> - <span class="num">6</span>))<br/>
 <span class="in2"></span>};<br/>
-<span class="in2"></span><span class="fn">put</span>(<span class="str">"[sp + $"</span>);<br/>
+<span class="in2"></span><span class="fn">put</span>(<span class="str">"[%sp + $"</span>);<br/>
 <span class="in2"></span><span class="fn">write_hex_int</span>(<span class="var">offset</span>, -<span class="num">1</span>);<br/>
 <span class="in2"></span><span class="fn">put</span>(<span class="str">"] &lt;- "</span>);<br/>
 <span class="in2"></span><span class="fn">write_reg</span>(<span class="var">reg</span>);<br/>
@@ -380,7 +380,7 @@ disassemble <code>[%<span class="var">sp</span> + <span class="var">immediate</s
 <span class="in3"></span>((<span class="var">cmd</span> &amp; <span class="num">0x1000</span>) &gt;&gt; (<span class="num">12</span> - <span class="num">5</span>))<br/>
 <span class="in2"></span>};<br/>
 <span class="in2"></span><span class="fn">write_reg</span>(<span class="var">reg</span>);<br/>
-<span class="in2"></span><span class="fn">put</span>(<span class="str">" &lt;- [sp + $"</span>);<br/>
+<span class="in2"></span><span class="fn">put</span>(<span class="str">" &lt;- [%sp + $"</span>);<br/>
 <span class="in2"></span><span class="fn">write_hex_int</span>(<span class="var">offset</span>, -<span class="num">1</span>);<br/>
 <span class="in2"></span><span class="fn">put</span>(<span class="str">']'</span>);<br/>
 <span class="in1"></span>}<br/>
@@ -428,7 +428,7 @@ disassemble <code><span class="var">reg</span> &lt;- <span class="var">reg</span
 <code>
 <span class="macro">@add(<span class="name">16 bit cases</span>)</span><br/>
 <span class="in1"></span><span class="keyword">else</span> <span class="keyword">if</span> (<span class="var">cmd</span> == <span class="num">0x8082</span>) {<br/>
-<span class="in2"></span><span class="fn">put</span>(<span class="str">"return"</span>);<br/>
+<span class="in2"></span><span class="fn">put</span>(<span class="str">"%pc &lt;- %ra // return"</span>);<br/>
 <span class="in1"></span>}<br/>
 <span class="macro">@end(<span class="name">16 bit cases</span>)</span><br/>
 </code></div>

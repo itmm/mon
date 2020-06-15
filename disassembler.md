@@ -275,7 +275,7 @@
 			((cmd & 0x1e00) >> (9 - 2)) |
 			((cmd & 0x0180) >> (7 - 6))
 		};
-		put("[sp + $");
+		put("[%sp + $");
 		write_hex_int(offset, -1);
 		put("] <- ");
 		write_reg(reg);
@@ -294,7 +294,7 @@
 			((cmd & 0x1000) >> (12 - 5))
 		};
 		write_reg(reg);
-		put(" <- [sp + $");
+		put(" <- [%sp + $");
 		write_hex_int(offset, -1);
 		put(']');
 	}
@@ -333,7 +333,7 @@
 ```
 @add(16 bit cases)
 	else if (cmd == 0x8082) {
-		put("return");
+		put("%pc <- %ra // return");
 	}
 @end(16 bit cases)
 ```
