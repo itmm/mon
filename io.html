@@ -11,6 +11,11 @@
 <div class="slide"><div class="slide-nr">1</div><div class="headers">
 <h1>Low Level Input/Output</h1>
 </div></div>
+<ul><li>
+the I/O routines wrap the C++ standard I/O on Unix
+</li><li>
+and use the UART on RISC-V
+</li></ul>
 </div>
 <div class="page"><div class="slide"><div class="slide-nr">2</div>
 <code>
@@ -22,6 +27,11 @@
 <span class="in1"></span><span class="keyword">#endif</span><br/>
 <span class="macro">@end(<span class="name">includes</span>)</span><br/>
 </code></div>
+<ul><li>
+use the standard library on Unix
+</li><li>
+mock some standard identifiers on RISC-V
+</li></ul>
 </div>
 <div class="page"><div class="slide"><div class="slide-nr">3</div>
 <code>
@@ -32,6 +42,11 @@
 <span class="in1"></span>}<br/>
 <span class="macro">@end(<span class="name">replace library</span>)</span><br/>
 </code></div>
+<ul><li>
+end of file marker and checking for printable characters are  reimplemented
+</li><li>
+the original version depends on too many other stuff
+</li></ul>
 </div>
 <div class="page"><div class="slide"><div class="slide-nr">4</div>
 <code>
@@ -42,6 +57,9 @@
 <span class="in1"></span>}<br/>
 <span class="macro">@End(<span class="name">globals</span>)</span><br/>
 </code></div>
+<ul><li>
+write a single character
+</li></ul>
 </div>
 <div class="page"><div class="slide"><div class="slide-nr">5</div>
 <code>
@@ -54,6 +72,9 @@
 <span class="in1"></span><span class="keyword">#endif</span><br/>
 <span class="macro">@end(<span class="name">needed by put</span>)</span><br/>
 </code></div>
+<ul><li>
+memory address of the UART configuration on RISC-V
+</li></ul>
 </div>
 <div class="page"><div class="slide"><div class="slide-nr">6</div>
 <code>
@@ -67,6 +88,13 @@
 <span class="in1"></span><span class="keyword">#endif</span><br/>
 <span class="macro">@end(<span class="name">put</span>)</span><br/>
 </code></div>
+<ul><li>
+Unix uses standard output
+</li><li>
+RISC-V waits until data can be written
+</li><li>
+and writes the character
+</li></ul>
 </div>
 <div class="page"><div class="slide"><div class="slide-nr">7</div>
 <code>
@@ -80,6 +108,11 @@
 <span class="in1"></span>}<br/>
 <span class="macro">@End(<span class="name">globals</span>)</span><br/>
 </code></div>
+<ul><li>
+to put a string, single characters are written
+</li><li>
+one at a time
+</li></ul>
 </div>
 <div class="page"><div class="slide"><div class="slide-nr">8</div>
 <code>
@@ -93,6 +126,9 @@
 <span class="in1"></span>}<br/>
 <span class="macro">@End(<span class="name">globals</span>)</span><br/>
 </code></div>
+<ul><li>
+newline is treated differently on Unix and RISC-V
+</li></ul>
 </div>
 <div class="page"><div class="slide"><div class="slide-nr">9</div>
 <code>
@@ -102,6 +138,9 @@
 <span class="in1"></span>}<br/>
 <span class="macro">@end(<span class="name">globals</span>)</span><br/>
 </code></div>
+<ul><li>
+reads a character
+</li></ul>
 </div>
 <div class="page"><div class="slide"><div class="slide-nr">10</div>
 <code>
@@ -119,6 +158,15 @@
 <span class="in1"></span><span class="keyword">return</span> <span class="var">res</span>;<br/>
 <span class="macro">@end(<span class="name">get</span>)</span><br/>
 </code></div>
+<ul><li>
+uses standard input on Unix
+</li><li>
+CTRL-D is converted to end of file
+</li><li>
+on RISC-V it polls the hardware until a character is available
+</li><li>
+if the character is a return it is converted to a newline
+</li></ul>
 </div>
 <div class="page"><div class="slide"><div class="slide-nr">11</div>
 <code>
@@ -129,6 +177,9 @@
 <span class="in1"></span><span class="var">res</span> = <span class="var">res</span> &amp; <span class="num">0xff</span>;<br/>
 <span class="macro">@end(<span class="name">wait for get ready</span>)</span><br/>
 </code></div>
+<ul><li>
+poll hardware until a character is available
+</li></ul>
 </div>
 </body>
 </html>

@@ -457,16 +457,54 @@
 ```
 @add(globals)
 	struct Addr_State {
-		ulong ref;
-		ulong dflt;
-		bool relative { false };
-		bool negative { false };
-		ulong value { 0 };
-		unsigned digits { 0 };
+		@put(addr state attribs)
 		ulong get(int &cmd);
 	};
 @end(globals)
 ```
+* `struct` to hold the current state of an address entry
+
+```
+@def(addr state attribs)
+	ulong ref;
+@end(addr state attribs)
+```
+* base for relative addresses
+
+```
+@add(addr state attribs)
+	ulong dflt;
+@end(addr state attribs)
+```
+* default address if no address is specified
+
+```
+@add(addr state attribs)
+	bool relative { false };
+@end(addr state attribs)
+```
+* is the current value a relative offset?
+
+```
+@add(addr state attribs)
+	bool negative { false };
+@end(addr state attribs)
+```
+* is the offset negative?
+
+```
+@add(addr state attribs)
+	ulong value { 0 };
+@end(addr state attribs)
+```
+* current value
+
+```
+@add(addr state attribs)
+	unsigned digits { 0 };
+@end(addr state attribs)
+```
+* number of significant digits entered
 
 ```
 @add(globals)
@@ -476,6 +514,7 @@
 	}
 @end(globals)
 ```
+* tries to get an address starting with the character `cmd`
 
 ```
 @def(get addr)
@@ -492,6 +531,8 @@
 	}
 @end(get addr)
 ```
+* read characters until the number is complete
+* or an invalid character is read
 
 ```
 @def(get addr chars)
@@ -509,12 +550,16 @@
 		break;
 @end(get addr chars)
 ```
+* handle backspace
+* if no characters are present, leave method
+* otherwise delete one character
 
 ```
 @def(delete after prev char)
 	put("\x1b[D\x1b[K");
 @end(delete after prev char)
 ```
+* move cursor backward and delete rest of line
 
 ```
 @add(get addr chars)
@@ -528,6 +573,8 @@
 		break;
 @end(get addr chars)
 ```
+* `+` and `-` are only allowed at the beginning
+* set the flags accordingly
 
 ```
 @add(get addr chars)
@@ -542,6 +589,7 @@
 	}
 @end(get addr chars)
 ```
+* parse hexadecimal digits
 
 ```
 @def(needed by addr get)
@@ -567,6 +615,8 @@
 	}
 @end(needed by addr get)
 ```
+* backspace a specific number of characters
+* and delete rest of the line
 
 ```
 @def(get addr digit)
@@ -577,6 +627,8 @@
 @end(get addr digit)
 ```
 * clear leading zeros
+* no leading zeros are printed
+* unless the current value is `0`
 
 ```
 @add(get addr digit)
@@ -593,6 +645,9 @@
 	} else { put('\a'); }
 @end(get addr digit)
 ```
+* convert to nibble value
+* and add to value
+* if previous value is small enough
 
 ```
 @add(get addr)
@@ -605,6 +660,7 @@
 	}
 @end(get addr)
 ```
+* calculate absolute address from relative one
 
 ```
 @def(addr not relative)
@@ -613,6 +669,7 @@
 	}
 @end(addr not relative)
 ```
+* use default address if nothing is specified
 
 ```
 @def(addr neg relative)
@@ -624,6 +681,8 @@
 	}
 @end(addr neg relative)
 ```
+* warn if the value would be negative
+* otherwise calculate absolute address
 
 ```
 @def(addr pos relative)
@@ -636,6 +695,8 @@
 	}
 @end(addr pos relative)
 ```
+* warn if the value would overflow
+* otherwise calculate absolute address
 
 ```
 @add(get addr)
@@ -648,6 +709,9 @@
 	return value;
 @end(get addr)
 ```
+* delete entered address
+* and write full-sized absolute address
+* return the entered address
 
 ```
 @add(command switch)
@@ -657,17 +721,44 @@
 	}
 @end(command switch)
 ```
+* process a memory command
 
 ```
 @add(globals)
 	enum class MC_State {
-		before_enter_1st,
-		entering_1st,
-		after_entering_1st,
-		entering_2nd
+		@put(mc states)
 	};
 @end(globals)
 ```
+* different states of the memory command
+
+```
+@def(mc states)
+	before_enter_1st
+@end(mc states)
+```
+* before entering the first address
+
+```
+@add(mc states),
+	entering_1st
+@end(mc states)
+```
+* while entering the first address
+
+```
+@add(mc states),
+	after_entering_1st
+@end(mc states)
+```
+* after entering the second address
+
+```
+@add(mc states),
+	entering_2nd
+@end(mc states)
+```
+* while entering the second address
 
 ```
 @def(memory command)
@@ -676,12 +767,21 @@
 	};
 	put("memory ");
 	cmd = get();
+@end(memory command)
+```
+* write full command name
+* initialize state
+* and get next character
+
+```
+@add(memory command)
 	Addr_State from;
 	Addr_State to;
 	from.ref = addr;
 	from.dflt = addr;
 @end(memory command)
 ```
+* initialize temporary variables
 
 ```
 @add(memory command)
@@ -691,6 +791,7 @@
 	} }
 @end(memory command)
 ```
+* read characters until done
 
 ```
 @def(memory command cases)
@@ -708,6 +809,7 @@
 		break;
 @end(memory command cases)
 ```
+* process according to current state
 
 ```
 @def(mc before enter 1st)
@@ -719,6 +821,8 @@
 	}
 @end(mc before enter 1st)
 ```
+* if backspace, delete command word and read next command
+* otherwise switch to entering first address
 
 ```
 @def(mc entering 1st)
@@ -735,6 +839,12 @@
 	}
 @end(mc entering 1st)
 ```
+* process current character
+* if the unprocessed character was a backspace, switch back to previous
+  state
+* otherwise initialize the second address as a fixed offset from the
+  first one
+
 
 ```
 @def(mc after entering 1st) {
@@ -752,6 +862,9 @@
 	}
 } @end(mc after entering 1st)
 ```
+* if character is a backspace, delete separator and switch to previous
+  state
+* otherwise print separator and move to next state
 
 ```
 @def(mc entering 2nd)
@@ -769,6 +882,9 @@
 	}
 @end(mc entering 2nd)
 ```
+* process the second address
+* if unprocessed character is backspace, switch to previous state
+* otherwise eat characters until a newline is read
 
 ```
 @def(mc done)
@@ -781,8 +897,10 @@
 	}
 @end(mc done)
 ```
+* dump the specified memory range, if it is not negative
 
 ## More commands
+* more comamnds of the monitor
 
 ```
 @add(command switch)
@@ -793,6 +911,7 @@
 	}
 @end(command switch)
 ```
+* `x` resets the current address to the start address
 
 ```
 @add(command switch)
@@ -802,8 +921,10 @@
 	}
 @end(command switch)
 ```
+* disassemble the instruction at the current address
 
 ```
 @inc(disassembler.md)
 ```
+* the disassembler is written in a different file
 

@@ -2,20 +2,20 @@
 #line 6 "index.md"
 
 	
-#line 4 "io.md"
+#line 6 "io.md"
 
 	#if UNIX_APP
 		#include <iostream>
 	#else
 		
-#line 14 "io.md"
+#line 18 "io.md"
 
 	constexpr int EOF { -1 };
 	inline bool isprint(char ch) {
 		return ch >= ' ' && ch <= '~';
 	}
 
-#line 8 "io.md"
+#line 10 "io.md"
 
 	#endif
 
@@ -29,10 +29,10 @@
 #line 7 "index.md"
 
 	
-#line 23 "io.md"
+#line 30 "io.md"
 
 	
-#line 32 "io.md"
+#line 40 "io.md"
 
 	#if ! UNIX_APP
 		volatile int *uart {
@@ -41,11 +41,11 @@
 			>(0x10013000) };
 	#endif
 
-#line 24 "io.md"
+#line 31 "io.md"
 
 	void put(char ch) {
 		
-#line 43 "io.md"
+#line 52 "io.md"
 
 	#if UNIX_APP
 		std::cout.put(ch);
@@ -55,11 +55,11 @@
 		uart[tx_data] = ch;
 	#endif
 
-#line 26 "io.md"
+#line 33 "io.md"
 
 	}
 
-#line 55 "io.md"
+#line 67 "io.md"
 
 	void put(const char *begin) {
 		if (begin) {
@@ -69,7 +69,7 @@
 		}
 	}
 
-#line 67 "io.md"
+#line 81 "io.md"
 
 	void putnl() {
 		#if UNIX_APP
@@ -79,11 +79,11 @@
 		#endif
 	}
 
-#line 79 "io.md"
+#line 94 "io.md"
 
 	int get() {
 		
-#line 87 "io.md"
+#line 103 "io.md"
 
 	#if UNIX_APP
 		int res { std::cin.get() };
@@ -92,21 +92,21 @@
 		constexpr int rx_data { 0x01 };
 		int res { EOF };
 		
-#line 103 "io.md"
+#line 123 "io.md"
 
 	while (res < 0) {
 		res = uart[rx_data];
 	}
 	res = res & 0xff;
 
-#line 94 "io.md"
+#line 110 "io.md"
 
 		res = res & 0xff;
 	#endif
 	if (res == '\r') { res = '\n'; }
 	return res;
 
-#line 81 "io.md"
+#line 96 "io.md"
 
 	}
 
@@ -318,19 +318,40 @@
 #line 458 "index.md"
 
 	struct Addr_State {
-		ulong ref;
-		ulong dflt;
-		bool relative { false };
-		bool negative { false };
-		ulong value { 0 };
-		unsigned digits { 0 };
+		
+#line 468 "index.md"
+
+	ulong ref;
+
+#line 475 "index.md"
+
+	ulong dflt;
+
+#line 482 "index.md"
+
+	bool relative { false };
+
+#line 489 "index.md"
+
+	bool negative { false };
+
+#line 496 "index.md"
+
+	ulong value { 0 };
+
+#line 503 "index.md"
+
+	unsigned digits { 0 };
+
+#line 460 "index.md"
+
 		ulong get(int &cmd);
 	};
 
-#line 472 "index.md"
+#line 510 "index.md"
 
 	
-#line 547 "index.md"
+#line 595 "index.md"
 
 	void write_int(unsigned int v) {
 		if (v >= 10) {
@@ -339,7 +360,7 @@
 		put((v % 10) + '0');
 	}
 
-#line 560 "index.md"
+#line 608 "index.md"
 
 	void delete_after_prev_chars(int n) {
 		if (n > 0) {
@@ -349,17 +370,17 @@
 		}
 	}
 
-#line 473 "index.md"
+#line 511 "index.md"
 
 	ulong Addr_State::get(int &cmd) {
 		
-#line 481 "index.md"
+#line 520 "index.md"
 
 	bool done { false };
 	for (;;) {
 		switch (cmd) {
 		
-#line 497 "index.md"
+#line 538 "index.md"
 
 	case 0x7f:
 		if (! digits) {
@@ -367,26 +388,26 @@
 				return 0;
 			}
 			
-#line 514 "index.md"
+#line 558 "index.md"
 
 	put("\x1b[D\x1b[K");
 
-#line 503 "index.md"
+#line 544 "index.md"
 
 			relative = negative = false;
 		} else {
 			
-#line 514 "index.md"
+#line 558 "index.md"
 
 	put("\x1b[D\x1b[K");
 
-#line 506 "index.md"
+#line 547 "index.md"
 
 			--digits; value = value >> 4;
 		}
 		break;
 
-#line 520 "index.md"
+#line 565 "index.md"
 
 	case '+': case '-':
 		if (digits || relative) {
@@ -397,7 +418,7 @@
 		negative = (cmd == '-');
 		break;
 
-#line 533 "index.md"
+#line 580 "index.md"
 
 	case '0': case '1': case '2':
 	case '3': case '4': case '5':
@@ -406,14 +427,14 @@
 	case 'c': case 'd': case 'e':
 	case 'f': {
 		
-#line 572 "index.md"
+#line 622 "index.md"
 
 	if (! value) {
 		delete_after_prev_chars(digits);
 		digits = 0;
 	}
 
-#line 582 "index.md"
+#line 634 "index.md"
 
 	int v;
 	if (cmd >= '0' && cmd <= '9') {
@@ -427,12 +448,12 @@
 		put(cmd);
 	} else { put('\a'); }
 
-#line 540 "index.md"
+#line 587 "index.md"
 
 		break;
 	}
 
-#line 485 "index.md"
+#line 524 "index.md"
 
 		default:
 			done = true;
@@ -442,21 +463,21 @@
 		cmd = ::get();
 	}
 
-#line 598 "index.md"
+#line 653 "index.md"
 
 	if (! relative) {
 		
-#line 610 "index.md"
+#line 666 "index.md"
 
 	if (! digits) {
 		value = dflt;
 	}
 
-#line 600 "index.md"
+#line 655 "index.md"
 
 	} else if (negative) {
 		
-#line 618 "index.md"
+#line 675 "index.md"
 
 	if (value > ref) {
 		put('\a');
@@ -465,11 +486,11 @@
 		value = ref - value;
 	}
 
-#line 602 "index.md"
+#line 657 "index.md"
 
 	} else {
 		
-#line 629 "index.md"
+#line 688 "index.md"
 
 	constexpr ulong mx { ~0ul };
 	if (mx - value < ref) {
@@ -479,11 +500,11 @@
 		value = ref + value;
 	}
 
-#line 604 "index.md"
+#line 659 "index.md"
 
 	}
 
-#line 641 "index.md"
+#line 702 "index.md"
 
 	delete_after_prev_chars(
 		digits + (relative ? 1 : 0)
@@ -493,30 +514,45 @@
 	digits = sizeof(ulong) * 2;
 	return value;
 
-#line 475 "index.md"
+#line 513 "index.md"
 
 	}
 
-#line 662 "index.md"
+#line 727 "index.md"
 
 	enum class MC_State {
-		before_enter_1st,
-		entering_1st,
-		after_entering_1st,
-		entering_2nd
+		
+#line 736 "index.md"
+
+	before_enter_1st
+
+#line 743 "index.md"
+,
+	entering_1st
+
+#line 750 "index.md"
+,
+	after_entering_1st
+
+#line 757 "index.md"
+,
+	entering_2nd
+
+#line 729 "index.md"
+
 	};
 
-#line 4 "disassembler.md"
+#line 5 "disassembler.md"
 
 	void write_hex_int(
 		int value, int bytes
 	) {
 		
-#line 14 "disassembler.md"
+#line 19 "disassembler.md"
 
 	if (bytes < 0) {
 		
-#line 29 "disassembler.md"
+#line 41 "disassembler.md"
 
 	if (value < 256) {
 		write_hex_int(value, 1);
@@ -526,10 +562,13 @@
 		write_hex_int(value, 4);
 	}
 
-#line 16 "disassembler.md"
+#line 21 "disassembler.md"
 
 		return;
 	}
+
+#line 29 "disassembler.md"
+
 	for (; bytes; --bytes) {
 		write_hex_byte(
 			(value >> (8 * (bytes - 1))) &
@@ -537,51 +576,65 @@
 		);
 	}
 
-#line 8 "disassembler.md"
+#line 9 "disassembler.md"
 
 	}
 
-#line 41 "disassembler.md"
+#line 54 "disassembler.md"
 
 	void write_reg(int reg) {
 		switch (reg) {
 			
-#line 54 "disassembler.md"
+#line 68 "disassembler.md"
 
-	case 0: put("zero"); break;
-	case 1: put("ra"); break;
-	case 2: put("sp"); break;
-	case 3: put("gp"); break;
-	case 4: put("tp"); break;
+	case 0: put("%zero"); break;
+	case 1: put("%ra"); break;
+	case 2: put("%sp"); break;
+	case 3: put("%gp"); break;
+	case 4: put("%tp"); break;
+
+#line 79 "disassembler.md"
+
 	case 5: case 6: case 7:
-		put('t'); put('0' + reg - 5);
-		break;
-	case 8: case 9:
-		put('s'); put('0' + reg - 8);
+		put("%t");
+		put('0' + reg - 5);
 		break;
 
-#line 70 "disassembler.md"
+#line 89 "disassembler.md"
+
+	case 8: case 9:
+		put("%s");
+		put('0' + reg - 8);
+		break;
+
+#line 99 "disassembler.md"
 
 	case 10: case 11: case 12:
 	case 13: case 14: case 15:
 	case 16: case 17:
-		put('a'); put('0' + reg - 10);
+		put("%a");
+		put('0' + reg - 10);
 		break;
+
+#line 111 "disassembler.md"
+
 	case 18: case 19: case 20:
 	case 21: case 22: case 23:
 	case 24: case 25: case 26:
 	case 27:
-		put('s'); write_int(reg - 18 + 2);
+		put("%s");
+		write_int(reg - 18 + 2);
 		break;
 
-#line 86 "disassembler.md"
+#line 124 "disassembler.md"
 
 	case 28: case 29: case 30:
 	case 31:
-		put('t'); put('0' + reg - 31 + 3);
+		put("%t");
+		put('0' + reg - 31 + 3);
 		break;
 
-#line 44 "disassembler.md"
+#line 57 "disassembler.md"
 
 			default:
 				put("?? # ");
@@ -589,7 +642,7 @@
 		}
 	}
 
-#line 124 "disassembler.md"
+#line 173 "disassembler.md"
 
 	void write_hex_bytes(
 		const uchr *bytes,
@@ -714,32 +767,35 @@
 		continue;
 	}
 
-#line 653 "index.md"
+#line 717 "index.md"
 
 	if (cmd == 'm') {
 		
-#line 673 "index.md"
+#line 764 "index.md"
 
 	MC_State state {
 		MC_State::before_enter_1st
 	};
 	put("memory ");
 	cmd = get();
+
+#line 777 "index.md"
+
 	Addr_State from;
 	Addr_State to;
 	from.ref = addr;
 	from.dflt = addr;
 
-#line 687 "index.md"
+#line 787 "index.md"
 
 	bool done { false };
 	while (! done) { switch (state) {
 		
-#line 696 "index.md"
+#line 797 "index.md"
 
 	case MC_State::before_enter_1st:
 		
-#line 713 "index.md"
+#line 815 "index.md"
 
 	if (cmd == 0x7f) {
 		
@@ -747,19 +803,19 @@
 
 	put("\x1b[G\x1b[K");
 
-#line 715 "index.md"
+#line 817 "index.md"
 
 		done = true;
 	} else {
 		state = MC_State::entering_1st;
 	}
 
-#line 698 "index.md"
+#line 799 "index.md"
 
 		break;
 	case MC_State::entering_1st:
 		
-#line 724 "index.md"
+#line 828 "index.md"
 
 	from.get(cmd);
 	if (cmd == 0x7f) {
@@ -773,12 +829,12 @@
 			MC_State::after_entering_1st;
 	}
 
-#line 701 "index.md"
+#line 802 "index.md"
 
 		break;
 	case MC_State::after_entering_1st:
 		
-#line 740 "index.md"
+#line 850 "index.md"
  {
 	constexpr char inter[] = " .. ";
 	if (cmd == 0x7f) {
@@ -793,12 +849,12 @@
 		state = MC_State::entering_2nd;
 	}
 } 
-#line 704 "index.md"
+#line 805 "index.md"
 
 		break;
 	case MC_State::entering_2nd:
 		
-#line 757 "index.md"
+#line 870 "index.md"
 
 	to.get(cmd);
 	if (cmd == 0x7f) {
@@ -807,7 +863,7 @@
 	} else {
 		if (cmd == '\n') {
 			
-#line 774 "index.md"
+#line 890 "index.md"
 
 	if (from.value <= to.value) {
 		putnl();
@@ -817,7 +873,7 @@
 		put('\a'); putnl();
 	}
 
-#line 764 "index.md"
+#line 877 "index.md"
 
 			done = true;
 		} else {
@@ -825,20 +881,20 @@
 		}
 	}
 
-#line 707 "index.md"
+#line 808 "index.md"
 
 		break;
 
-#line 690 "index.md"
+#line 790 "index.md"
 
 	} }
 
-#line 655 "index.md"
+#line 719 "index.md"
 
 		continue;
 	}
 
-#line 788 "index.md"
+#line 906 "index.md"
 
 	if (cmd == 'x') {
 		put("reset to start"); putnl();
@@ -846,47 +902,53 @@
 		continue;
 	}
 
-#line 798 "index.md"
+#line 917 "index.md"
 
 	if (cmd == 'd') {
 		
-#line 95 "disassembler.md"
+#line 135 "disassembler.md"
 
 	
 #line 265 "index.md"
 
 	put("\x1b[G\x1b[K");
 
-#line 96 "disassembler.md"
+#line 136 "disassembler.md"
 
 	write_addr(addr);
 	put("  ");
+
+#line 144 "disassembler.md"
+
 	const auto bytes { reinterpret_cast<
 		uchr *
 	>(addr) };
 	unsigned cmd { 0 };
 	cmd = bytes[0];
 
-#line 108 "disassembler.md"
+#line 156 "disassembler.md"
 
 	if ((cmd & 0x3) != 0x3) {
 		
-#line 138 "disassembler.md"
+#line 188 "disassembler.md"
 
 	write_hex_bytes(bytes, 2);
 	put("       ");
 	cmd |= bytes[1] << 8;
+
+#line 198 "disassembler.md"
+
 	if (cmd == 0x0000) {
 		put("db.s $0000 // illegal");
 	}
 	
-#line 154 "disassembler.md"
+#line 212 "disassembler.md"
 
 	else if ((cmd & 0xe003) == 0x0001 &&
 		(cmd & 0x0f80)
 	) {
 		
-#line 164 "disassembler.md"
+#line 223 "disassembler.md"
 
 	auto reg { (cmd & 0x0f80) >> 7 };
 	auto immed { (cmd & 0x007c) >> 2 };
@@ -894,42 +956,42 @@
 	put(" <- ");
 	write_reg(reg);
 	if (cmd & 0x1000) {
-		immed = (~immed + 1) & 0x1f;
+		immed = (-immed) & 0x1f;
 		put(" - $");
 	} else {
 		put(" + $");
 	}
 	write_hex_int(immed, -1);
 
-#line 158 "disassembler.md"
+#line 216 "disassembler.md"
 
 	}
 
-#line 181 "disassembler.md"
+#line 242 "disassembler.md"
 
 	else if ((cmd & 0xe003) == 0x4001 &&
 		(cmd & 0x0f80)
 	) {
 		
-#line 191 "disassembler.md"
+#line 253 "disassembler.md"
 
 	auto reg { (cmd & 0x0f80) >> 7 };
 	auto immed { (cmd & 0x007c) >> 2 };
 	write_reg(reg);
 	put(" <- ");
 	if (cmd & 0x1000) {
-		immed = (~immed + 1) & 0x1f;
+		immed = (-immed) & 0x1f;
 		put("-$");
 	} else {
 		put('$');
 	}
 	write_hex_int(immed, -1);
 
-#line 185 "disassembler.md"
+#line 246 "disassembler.md"
 
 	}
 
-#line 207 "disassembler.md"
+#line 271 "disassembler.md"
 
 	else if ((cmd & 0xe003) == 0xc002) {
 		auto reg { (cmd & 0x7c) >> 2 };
@@ -943,7 +1005,7 @@
 		write_reg(reg);
 	}
 
-#line 223 "disassembler.md"
+#line 288 "disassembler.md"
 
 	else if ((cmd & 0xe003) == 0x4002) {
 		auto reg { (cmd & 0x0f80) >> 7 };
@@ -958,7 +1020,7 @@
 		put(']');
 	}
 
-#line 240 "disassembler.md"
+#line 306 "disassembler.md"
 
 	else if ((cmd & 0xf003) == 0x8002 &&
 		(cmd & 0x007c)
@@ -968,7 +1030,7 @@
 		write_reg((cmd & 0x007c) >> 2);
 	}
 
-#line 252 "disassembler.md"
+#line 319 "disassembler.md"
 
 	else if ((cmd & 0xf003) == 0x9002 &&
 		(cmd & 0x007c)
@@ -980,25 +1042,25 @@
 		write_reg((cmd & 0x007c) >> 2);
 	}
 
-#line 266 "disassembler.md"
+#line 334 "disassembler.md"
 
 	else if (cmd == 0x8082) {
-		put("ret");
+		put("return");
 	}
 
-#line 145 "disassembler.md"
+#line 202 "disassembler.md"
 
 	else {
 		put("db.s $");
 		write_hex_int(cmd, 2);
 	}
 
-#line 110 "disassembler.md"
+#line 158 "disassembler.md"
 
 		addr += 2;
 	} else if ((cmd & 0xc) != 0xc) {
 		
-#line 274 "disassembler.md"
+#line 343 "disassembler.md"
 
 	write_hex_bytes(bytes, 4);
 	put(' ');
@@ -1006,13 +1068,13 @@
 	cmd |= bytes[2] << 16;
 	cmd |= bytes[3] << 24;
 
-#line 284 "disassembler.md"
+#line 355 "disassembler.md"
 
 	if ((cmd & 0xfe00707f) ==
 		0x00005033
 	) {
 		
-#line 298 "disassembler.md"
+#line 370 "disassembler.md"
 
 	write_reg((cmd & 0x00000f80) >> 7);
 	put(" <- ");
@@ -1020,7 +1082,7 @@
 	put(" >> ");
 	write_reg((cmd & 0x01f00000) >> 20);
 
-#line 288 "disassembler.md"
+#line 359 "disassembler.md"
 
 	}
 	else {
@@ -1028,12 +1090,12 @@
 		write_hex_int(cmd, 4);
 	}
 
-#line 113 "disassembler.md"
+#line 161 "disassembler.md"
 
 		addr += 4;
 	} else {
 		
-#line 308 "disassembler.md"
+#line 381 "disassembler.md"
 
 	write_hex_bytes(bytes, 2);
 	put("       ");
@@ -1042,13 +1104,13 @@
 	put(" $");
 	write_hex_byte(bytes[1]);
 
-#line 116 "disassembler.md"
+#line 164 "disassembler.md"
 
 		addr += 2;
 	}
 	putnl();
 
-#line 800 "index.md"
+#line 919 "index.md"
 
 		continue;
 	}

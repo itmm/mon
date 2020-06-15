@@ -1,4 +1,6 @@
 # Low Level Input/Output
+* the I/O routines wrap the C++ standard I/O on Unix
+* and use the UART on RISC-V
 
 ```
 @Def(includes)
@@ -9,6 +11,8 @@
 	#endif
 @end(includes)
 ```
+* use the standard library on Unix
+* mock some standard identifiers on RISC-V
 
 ```
 @def(replace library)
@@ -18,6 +22,9 @@
 	}
 @end(replace library)
 ```
+* end of file marker and checking for printable characters are
+  reimplemented
+* the original version depends on too many other stuff
 
 ```
 @Def(globals)
@@ -27,6 +34,7 @@
 	}
 @End(globals)
 ```
+* write a single character
 
 ```
 @def(needed by put)
@@ -38,6 +46,7 @@
 	#endif
 @end(needed by put)
 ```
+* memory address of the UART configuration on RISC-V
 
 ```
 @def(put)
@@ -50,6 +59,9 @@
 	#endif
 @end(put)
 ```
+* Unix uses standard output
+* RISC-V waits until data can be written
+* and writes the character
 
 ```
 @Add(globals)
@@ -62,6 +74,8 @@
 	}
 @End(globals)
 ```
+* to put a string, single characters are written
+* one at a time
 
 ```
 @Add(globals)
@@ -74,6 +88,7 @@
 	}
 @End(globals)
 ```
+* newline is treated differently on Unix and RISC-V
 
 ```
 @Add(globals)
@@ -82,6 +97,7 @@
 	}
 @end(globals)
 ```
+* reads a character
 
 ```
 @def(get)
@@ -98,6 +114,10 @@
 	return res;
 @end(get)
 ```
+* uses standard input on Unix
+* CTRL-D is converted to end of file
+* on RISC-V it polls the hardware until a character is available
+* if the character is a return it is converted to a newline
 
 ```
 @def(wait for get ready)
@@ -107,4 +127,5 @@
 	res = res & 0xff;
 @end(wait for get ready)
 ```
+* poll hardware until a character is available
 

@@ -655,18 +655,76 @@ the <code><span class="var">m</span></code> memory command allows to specify a s
 <code>
 <span class="macro">@add(<span class="name">globals</span>)</span><br/>
 <span class="in1"></span><span class="type">struct</span> <span class="type">Addr_State</span> {<br/>
-<span class="in2"></span><span class="var">ulong</span> <span class="var">ref</span>;<br/>
-<span class="in2"></span><span class="var">ulong</span> <span class="var">dflt</span>;<br/>
-<span class="in2"></span><span class="type">bool</span> <span class="var">relative</span> { <span class="num">false</span> };<br/>
-<span class="in2"></span><span class="type">bool</span> <span class="var">negative</span> { <span class="num">false</span> };<br/>
-<span class="in2"></span><span class="var">ulong</span> <span class="var">value</span> { <span class="num">0</span> };<br/>
-<span class="in2"></span><span class="type">unsigned</span> <span class="var">digits</span> { <span class="num">0</span> };<br/>
+<span class="in2"></span><span class="macro">@put(<span class="name">addr state attribs</span>)</span><br/>
 <span class="in2"></span><span class="var">ulong</span> <span class="fn">get</span>(<span class="type">int</span> &amp;<span class="var">cmd</span>);<br/>
 <span class="in1"></span>};<br/>
 <span class="macro">@end(<span class="name">globals</span>)</span><br/>
 </code></div>
+<ul><li>
+<code><span class="type">struct</span></code> to hold the current state of an address entry
+</li></ul>
 </div>
 <div class="page"><div class="slide"><div class="slide-nr">44</div>
+<code>
+<span class="macro">@def(<span class="name">addr state attribs</span>)</span><br/>
+<span class="in1"></span><span class="var">ulong</span> <span class="var">ref</span>;<br/>
+<span class="macro">@end(<span class="name">addr state attribs</span>)</span><br/>
+</code></div>
+<ul><li>
+base for relative addresses
+</li></ul>
+</div>
+<div class="page"><div class="slide"><div class="slide-nr">45</div>
+<code>
+<span class="macro">@add(<span class="name">addr state attribs</span>)</span><br/>
+<span class="in1"></span><span class="var">ulong</span> <span class="var">dflt</span>;<br/>
+<span class="macro">@end(<span class="name">addr state attribs</span>)</span><br/>
+</code></div>
+<ul><li>
+default address if no address is specified
+</li></ul>
+</div>
+<div class="page"><div class="slide"><div class="slide-nr">46</div>
+<code>
+<span class="macro">@add(<span class="name">addr state attribs</span>)</span><br/>
+<span class="in1"></span><span class="type">bool</span> <span class="var">relative</span> { <span class="num">false</span> };<br/>
+<span class="macro">@end(<span class="name">addr state attribs</span>)</span><br/>
+</code></div>
+<ul><li>
+is the current value a relative offset?
+</li></ul>
+</div>
+<div class="page"><div class="slide"><div class="slide-nr">47</div>
+<code>
+<span class="macro">@add(<span class="name">addr state attribs</span>)</span><br/>
+<span class="in1"></span><span class="type">bool</span> <span class="var">negative</span> { <span class="num">false</span> };<br/>
+<span class="macro">@end(<span class="name">addr state attribs</span>)</span><br/>
+</code></div>
+<ul><li>
+is the offset negative?
+</li></ul>
+</div>
+<div class="page"><div class="slide"><div class="slide-nr">48</div>
+<code>
+<span class="macro">@add(<span class="name">addr state attribs</span>)</span><br/>
+<span class="in1"></span><span class="var">ulong</span> <span class="var">value</span> { <span class="num">0</span> };<br/>
+<span class="macro">@end(<span class="name">addr state attribs</span>)</span><br/>
+</code></div>
+<ul><li>
+current value
+</li></ul>
+</div>
+<div class="page"><div class="slide"><div class="slide-nr">49</div>
+<code>
+<span class="macro">@add(<span class="name">addr state attribs</span>)</span><br/>
+<span class="in1"></span><span class="type">unsigned</span> <span class="var">digits</span> { <span class="num">0</span> };<br/>
+<span class="macro">@end(<span class="name">addr state attribs</span>)</span><br/>
+</code></div>
+<ul><li>
+number of significant digits entered
+</li></ul>
+</div>
+<div class="page"><div class="slide"><div class="slide-nr">50</div>
 <code>
 <span class="macro">@add(<span class="name">globals</span>)</span><br/>
 <span class="in1"></span><span class="macro">@put(<span class="name">needed by addr get</span>)</span><br/>
@@ -675,8 +733,11 @@ the <code><span class="var">m</span></code> memory command allows to specify a s
 <span class="in1"></span>}<br/>
 <span class="macro">@end(<span class="name">globals</span>)</span><br/>
 </code></div>
+<ul><li>
+tries to get an address starting with the character <code><span class="var">cmd</span></code>
+</li></ul>
 </div>
-<div class="page"><div class="slide"><div class="slide-nr">45</div>
+<div class="page"><div class="slide"><div class="slide-nr">51</div>
 <code>
 <span class="macro">@def(<span class="name">get addr</span>)</span><br/>
 <span class="in1"></span><span class="type">bool</span> <span class="var">done</span> { <span class="num">false</span> };<br/>
@@ -692,8 +753,13 @@ the <code><span class="var">m</span></code> memory command allows to specify a s
 <span class="in1"></span>}<br/>
 <span class="macro">@end(<span class="name">get addr</span>)</span><br/>
 </code></div>
+<ul><li>
+read characters until the number is complete
+</li><li>
+or an invalid character is read
+</li></ul>
 </div>
-<div class="page"><div class="slide"><div class="slide-nr">46</div>
+<div class="page"><div class="slide"><div class="slide-nr">52</div>
 <code>
 <span class="macro">@def(<span class="name">get addr chars</span>)</span><br/>
 <span class="in1"></span><span class="keyword">case</span> <span class="num">0x7f</span>:<br/>
@@ -710,15 +776,25 @@ the <code><span class="var">m</span></code> memory command allows to specify a s
 <span class="in2"></span><span class="keyword">break</span>;<br/>
 <span class="macro">@end(<span class="name">get addr chars</span>)</span><br/>
 </code></div>
+<ul><li>
+handle backspace
+</li><li>
+if no characters are present, leave method
+</li><li>
+otherwise delete one character
+</li></ul>
 </div>
-<div class="page"><div class="slide"><div class="slide-nr">47</div>
+<div class="page"><div class="slide"><div class="slide-nr">53</div>
 <code>
 <span class="macro">@def(<span class="name">delete after prev char</span>)</span><br/>
 <span class="in1"></span><span class="fn">put</span>(<span class="str">"\x1b[D\x1b[K"</span>);<br/>
 <span class="macro">@end(<span class="name">delete after prev char</span>)</span><br/>
 </code></div>
+<ul><li>
+move cursor backward and delete rest of line
+</li></ul>
 </div>
-<div class="page"><div class="slide"><div class="slide-nr">48</div>
+<div class="page"><div class="slide"><div class="slide-nr">54</div>
 <code>
 <span class="macro">@add(<span class="name">get addr chars</span>)</span><br/>
 <span class="in1"></span><span class="keyword">case</span> <span class="str">'+'</span>: <span class="keyword">case</span> <span class="str">'-'</span>:<br/>
@@ -731,8 +807,13 @@ the <code><span class="var">m</span></code> memory command allows to specify a s
 <span class="in2"></span><span class="keyword">break</span>;<br/>
 <span class="macro">@end(<span class="name">get addr chars</span>)</span><br/>
 </code></div>
+<ul><li>
+<code>+</code> and <code>-</code> are only allowed at the beginning
+</li><li>
+set the flags accordingly
+</li></ul>
 </div>
-<div class="page"><div class="slide"><div class="slide-nr">49</div>
+<div class="page"><div class="slide"><div class="slide-nr">55</div>
 <code>
 <span class="macro">@add(<span class="name">get addr chars</span>)</span><br/>
 <span class="in1"></span><span class="keyword">case</span> <span class="str">'0'</span>: <span class="keyword">case</span> <span class="str">'1'</span>: <span class="keyword">case</span> <span class="str">'2'</span>:<br/>
@@ -746,8 +827,11 @@ the <code><span class="var">m</span></code> memory command allows to specify a s
 <span class="in1"></span>}<br/>
 <span class="macro">@end(<span class="name">get addr chars</span>)</span><br/>
 </code></div>
+<ul><li>
+parse hexadecimal digits
+</li></ul>
 </div>
-<div class="page"><div class="slide"><div class="slide-nr">50</div>
+<div class="page"><div class="slide"><div class="slide-nr">56</div>
 <code>
 <span class="macro">@def(<span class="name">needed by addr get</span>)</span><br/>
 <span class="in1"></span><span class="type">void</span> <span class="fn">write_int</span>(<span class="type">unsigned</span> <span class="type">int</span> <span class="var">v</span>) {<br/>
@@ -764,7 +848,7 @@ writes a decimal number
 needed for writing escape sequences
 </li></ul>
 </div>
-<div class="page"><div class="slide"><div class="slide-nr">51</div>
+<div class="page"><div class="slide"><div class="slide-nr">57</div>
 <code>
 <span class="macro">@add(<span class="name">needed by addr get</span>)</span><br/>
 <span class="in1"></span><span class="type">void</span> <span class="fn">delete_after_prev_chars</span>(<span class="type">int</span> <span class="var">n</span>) {<br/>
@@ -776,8 +860,13 @@ needed for writing escape sequences
 <span class="in1"></span>}<br/>
 <span class="macro">@end(<span class="name">needed by addr get</span>)</span><br/>
 </code></div>
+<ul><li>
+backspace a specific number of characters
+</li><li>
+and delete rest of the line
+</li></ul>
 </div>
-<div class="page"><div class="slide"><div class="slide-nr">52</div>
+<div class="page"><div class="slide"><div class="slide-nr">58</div>
 <code>
 <span class="macro">@def(<span class="name">get addr digit</span>)</span><br/>
 <span class="in1"></span><span class="keyword">if</span> (! <span class="var">value</span>) {<br/>
@@ -788,9 +877,13 @@ needed for writing escape sequences
 </code></div>
 <ul><li>
 clear leading zeros
+</li><li>
+no leading zeros are printed
+</li><li>
+unless the current value is <code><span class="num">0</span></code>
 </li></ul>
 </div>
-<div class="page"><div class="slide"><div class="slide-nr">53</div>
+<div class="page"><div class="slide"><div class="slide-nr">59</div>
 <code>
 <span class="macro">@add(<span class="name">get addr digit</span>)</span><br/>
 <span class="in1"></span><span class="type">int</span> <span class="var">v</span>;<br/>
@@ -806,8 +899,15 @@ clear leading zeros
 <span class="in1"></span>} <span class="keyword">else</span> { <span class="fn">put</span>(<span class="str">'\a'</span>); }<br/>
 <span class="macro">@end(<span class="name">get addr digit</span>)</span><br/>
 </code></div>
+<ul><li>
+convert to nibble value
+</li><li>
+and add to value
+</li><li>
+if previous value is small enough
+</li></ul>
 </div>
-<div class="page"><div class="slide"><div class="slide-nr">54</div>
+<div class="page"><div class="slide"><div class="slide-nr">60</div>
 <code>
 <span class="macro">@add(<span class="name">get addr</span>)</span><br/>
 <span class="in1"></span><span class="keyword">if</span> (! <span class="var">relative</span>) {<br/>
@@ -819,8 +919,11 @@ clear leading zeros
 <span class="in1"></span>}<br/>
 <span class="macro">@end(<span class="name">get addr</span>)</span><br/>
 </code></div>
+<ul><li>
+calculate absolute address from relative one
+</li></ul>
 </div>
-<div class="page"><div class="slide"><div class="slide-nr">55</div>
+<div class="page"><div class="slide"><div class="slide-nr">61</div>
 <code>
 <span class="macro">@def(<span class="name">addr not relative</span>)</span><br/>
 <span class="in1"></span><span class="keyword">if</span> (! <span class="var">digits</span>) {<br/>
@@ -828,8 +931,11 @@ clear leading zeros
 <span class="in1"></span>}<br/>
 <span class="macro">@end(<span class="name">addr not relative</span>)</span><br/>
 </code></div>
+<ul><li>
+use default address if nothing is specified
+</li></ul>
 </div>
-<div class="page"><div class="slide"><div class="slide-nr">56</div>
+<div class="page"><div class="slide"><div class="slide-nr">62</div>
 <code>
 <span class="macro">@def(<span class="name">addr neg relative</span>)</span><br/>
 <span class="in1"></span><span class="keyword">if</span> (<span class="var">value</span> &gt; <span class="var">ref</span>) {<br/>
@@ -840,8 +946,13 @@ clear leading zeros
 <span class="in1"></span>}<br/>
 <span class="macro">@end(<span class="name">addr neg relative</span>)</span><br/>
 </code></div>
+<ul><li>
+warn if the value would be negative
+</li><li>
+otherwise calculate absolute address
+</li></ul>
 </div>
-<div class="page"><div class="slide"><div class="slide-nr">57</div>
+<div class="page"><div class="slide"><div class="slide-nr">63</div>
 <code>
 <span class="macro">@def(<span class="name">addr pos relative</span>)</span><br/>
 <span class="in1"></span><span class="keyword">constexpr</span> <span class="var">ulong</span> <span class="var">mx</span> { ~<span class="num">0ul</span> };<br/>
@@ -853,8 +964,13 @@ clear leading zeros
 <span class="in1"></span>}<br/>
 <span class="macro">@end(<span class="name">addr pos relative</span>)</span><br/>
 </code></div>
+<ul><li>
+warn if the value would overflow
+</li><li>
+otherwise calculate absolute address
+</li></ul>
 </div>
-<div class="page"><div class="slide"><div class="slide-nr">58</div>
+<div class="page"><div class="slide"><div class="slide-nr">64</div>
 <code>
 <span class="macro">@add(<span class="name">get addr</span>)</span><br/>
 <span class="in1"></span><span class="fn">delete_after_prev_chars</span>(<br/>
@@ -866,8 +982,15 @@ clear leading zeros
 <span class="in1"></span><span class="keyword">return</span> <span class="var">value</span>;<br/>
 <span class="macro">@end(<span class="name">get addr</span>)</span><br/>
 </code></div>
+<ul><li>
+delete entered address
+</li><li>
+and write full-sized absolute address
+</li><li>
+return the entered address
+</li></ul>
 </div>
-<div class="page"><div class="slide"><div class="slide-nr">59</div>
+<div class="page"><div class="slide"><div class="slide-nr">65</div>
 <code>
 <span class="macro">@add(<span class="name">command switch</span>)</span><br/>
 <span class="in1"></span><span class="keyword">if</span> (<span class="var">cmd</span> == <span class="str">'m'</span>) {<br/>
@@ -876,20 +999,63 @@ clear leading zeros
 <span class="in1"></span>}<br/>
 <span class="macro">@end(<span class="name">command switch</span>)</span><br/>
 </code></div>
+<ul><li>
+process a memory command
+</li></ul>
 </div>
-<div class="page"><div class="slide"><div class="slide-nr">60</div>
+<div class="page"><div class="slide"><div class="slide-nr">66</div>
 <code>
 <span class="macro">@add(<span class="name">globals</span>)</span><br/>
 <span class="in1"></span><span class="type">enum</span> <span class="keyword">class</span> <span class="var">MC_State</span> {<br/>
-<span class="in2"></span><span class="var">before_enter_1st</span>,<br/>
-<span class="in2"></span><span class="var">entering_1st</span>,<br/>
-<span class="in2"></span><span class="var">after_entering_1st</span>,<br/>
-<span class="in2"></span><span class="var">entering_2nd</span><br/>
+<span class="in2"></span><span class="macro">@put(<span class="name">mc states</span>)</span><br/>
 <span class="in1"></span>};<br/>
 <span class="macro">@end(<span class="name">globals</span>)</span><br/>
 </code></div>
+<ul><li>
+different states of the memory command
+</li></ul>
 </div>
-<div class="page"><div class="slide"><div class="slide-nr">61</div>
+<div class="page"><div class="slide"><div class="slide-nr">67</div>
+<code>
+<span class="macro">@def(<span class="name">mc states</span>)</span><br/>
+<span class="in1"></span><span class="var">before_enter_1st</span><br/>
+<span class="macro">@end(<span class="name">mc states</span>)</span><br/>
+</code></div>
+<ul><li>
+before entering the first address
+</li></ul>
+</div>
+<div class="page"><div class="slide"><div class="slide-nr">68</div>
+<code>
+<span class="macro">@add(<span class="name">mc states</span>)</span>,<br/>
+<span class="in1"></span><span class="var">entering_1st</span><br/>
+<span class="macro">@end(<span class="name">mc states</span>)</span><br/>
+</code></div>
+<ul><li>
+while entering the first address
+</li></ul>
+</div>
+<div class="page"><div class="slide"><div class="slide-nr">69</div>
+<code>
+<span class="macro">@add(<span class="name">mc states</span>)</span>,<br/>
+<span class="in1"></span><span class="var">after_entering_1st</span><br/>
+<span class="macro">@end(<span class="name">mc states</span>)</span><br/>
+</code></div>
+<ul><li>
+after entering the second address
+</li></ul>
+</div>
+<div class="page"><div class="slide"><div class="slide-nr">70</div>
+<code>
+<span class="macro">@add(<span class="name">mc states</span>)</span>,<br/>
+<span class="in1"></span><span class="var">entering_2nd</span><br/>
+<span class="macro">@end(<span class="name">mc states</span>)</span><br/>
+</code></div>
+<ul><li>
+while entering the second address
+</li></ul>
+</div>
+<div class="page"><div class="slide"><div class="slide-nr">71</div>
 <code>
 <span class="macro">@def(<span class="name">memory command</span>)</span><br/>
 <span class="in1"></span><span class="var">MC_State</span> <span class="var">state</span> {<br/>
@@ -897,14 +1063,30 @@ clear leading zeros
 <span class="in1"></span>};<br/>
 <span class="in1"></span><span class="fn">put</span>(<span class="str">"memory "</span>);<br/>
 <span class="in1"></span><span class="var">cmd</span> = <span class="fn">get</span>();<br/>
+<span class="macro">@end(<span class="name">memory command</span>)</span><br/>
+</code></div>
+<ul><li>
+write full command name
+</li><li>
+initialize state
+</li><li>
+and get next character
+</li></ul>
+</div>
+<div class="page"><div class="slide"><div class="slide-nr">72</div>
+<code>
+<span class="macro">@add(<span class="name">memory command</span>)</span><br/>
 <span class="in1"></span><span class="type">Addr_State</span> <span class="var">from</span>;<br/>
 <span class="in1"></span><span class="type">Addr_State</span> <span class="var">to</span>;<br/>
 <span class="in1"></span><span class="var">from</span>.<span class="var">ref</span> = <span class="var">addr</span>;<br/>
 <span class="in1"></span><span class="var">from</span>.<span class="var">dflt</span> = <span class="var">addr</span>;<br/>
 <span class="macro">@end(<span class="name">memory command</span>)</span><br/>
 </code></div>
+<ul><li>
+initialize temporary variables
+</li></ul>
 </div>
-<div class="page"><div class="slide"><div class="slide-nr">62</div>
+<div class="page"><div class="slide"><div class="slide-nr">73</div>
 <code>
 <span class="macro">@add(<span class="name">memory command</span>)</span><br/>
 <span class="in1"></span><span class="type">bool</span> <span class="var">done</span> { <span class="num">false</span> };<br/>
@@ -913,8 +1095,11 @@ clear leading zeros
 <span class="in1"></span>} }<br/>
 <span class="macro">@end(<span class="name">memory command</span>)</span><br/>
 </code></div>
+<ul><li>
+read characters until done
+</li></ul>
 </div>
-<div class="page"><div class="slide"><div class="slide-nr">63</div>
+<div class="page"><div class="slide"><div class="slide-nr">74</div>
 <code>
 <span class="macro">@def(<span class="name">memory command cases</span>)</span><br/>
 <span class="in1"></span><span class="keyword">case</span> <span class="var">MC_State</span>::<span class="var">before_enter_1st</span>:<br/>
@@ -931,8 +1116,11 @@ clear leading zeros
 <span class="in2"></span><span class="keyword">break</span>;<br/>
 <span class="macro">@end(<span class="name">memory command cases</span>)</span><br/>
 </code></div>
+<ul><li>
+process according to current state
+</li></ul>
 </div>
-<div class="page"><div class="slide"><div class="slide-nr">64</div>
+<div class="page"><div class="slide"><div class="slide-nr">75</div>
 <code>
 <span class="macro">@def(<span class="name">mc before enter 1st</span>)</span><br/>
 <span class="in1"></span><span class="keyword">if</span> (<span class="var">cmd</span> == <span class="num">0x7f</span>) {<br/>
@@ -943,8 +1131,13 @@ clear leading zeros
 <span class="in1"></span>}<br/>
 <span class="macro">@end(<span class="name">mc before enter 1st</span>)</span><br/>
 </code></div>
+<ul><li>
+if backspace, delete command word and read next command
+</li><li>
+otherwise switch to entering first address
+</li></ul>
 </div>
-<div class="page"><div class="slide"><div class="slide-nr">65</div>
+<div class="page"><div class="slide"><div class="slide-nr">76</div>
 <code>
 <span class="macro">@def(<span class="name">mc entering 1st</span>)</span><br/>
 <span class="in1"></span><span class="var">from</span>.<span class="fn">get</span>(<span class="var">cmd</span>);<br/>
@@ -960,8 +1153,15 @@ clear leading zeros
 <span class="in1"></span>}<br/>
 <span class="macro">@end(<span class="name">mc entering 1st</span>)</span><br/>
 </code></div>
+<ul><li>
+process current character
+</li><li>
+if the unprocessed character was a backspace, switch back to previous  state
+</li><li>
+otherwise initialize the second address as a fixed offset from the  first one
+</li></ul>
 </div>
-<div class="page"><div class="slide"><div class="slide-nr">66</div>
+<div class="page"><div class="slide"><div class="slide-nr">77</div>
 <code>
 <span class="macro">@def(<span class="name">mc after entering 1st</span>)</span> {<br/>
 <span class="in1"></span><span class="keyword">constexpr</span> <span class="type">char</span> <span class="var">inter</span>[] = <span class="str">" .. "</span>;<br/>
@@ -978,8 +1178,13 @@ clear leading zeros
 <span class="in1"></span>}<br/>
 } <span class="macro">@end(<span class="name">mc after entering 1st</span>)</span><br/>
 </code></div>
+<ul><li>
+if character is a backspace, delete separator and switch to previous  state
+</li><li>
+otherwise print separator and move to next state
+</li></ul>
 </div>
-<div class="page"><div class="slide"><div class="slide-nr">67</div>
+<div class="page"><div class="slide"><div class="slide-nr">78</div>
 <code>
 <span class="macro">@def(<span class="name">mc entering 2nd</span>)</span><br/>
 <span class="in1"></span><span class="var">to</span>.<span class="fn">get</span>(<span class="var">cmd</span>);<br/>
@@ -996,8 +1201,15 @@ clear leading zeros
 <span class="in1"></span>}<br/>
 <span class="macro">@end(<span class="name">mc entering 2nd</span>)</span><br/>
 </code></div>
+<ul><li>
+process the second address
+</li><li>
+if unprocessed character is backspace, switch to previous state
+</li><li>
+otherwise eat characters until a newline is read
+</li></ul>
 </div>
-<div class="page"><div class="slide"><div class="slide-nr">68</div>
+<div class="page"><div class="slide"><div class="slide-nr">79</div>
 <code>
 <span class="macro">@def(<span class="name">mc done</span>)</span><br/>
 <span class="in1"></span><span class="keyword">if</span> (<span class="var">from</span>.<span class="var">value</span> &lt;= <span class="var">to</span>.<span class="var">value</span>) {<br/>
@@ -1009,16 +1221,22 @@ clear leading zeros
 <span class="in1"></span>}<br/>
 <span class="macro">@end(<span class="name">mc done</span>)</span><br/>
 </code></div>
+<ul><li>
+dump the specified memory range, if it is not negative
+</li></ul>
 </div>
 </div>
 <h2>More commands</h2>
 <div class="slides">
 <div class="page">
-<div class="slide"><div class="slide-nr">69</div><div class="headers">
+<div class="slide"><div class="slide-nr">80</div><div class="headers">
 <h2>More commands</h2>
 </div></div>
+<ul><li>
+more comamnds of the monitor
+</li></ul>
 </div>
-<div class="page"><div class="slide"><div class="slide-nr">70</div>
+<div class="page"><div class="slide"><div class="slide-nr">81</div>
 <code>
 <span class="macro">@add(<span class="name">command switch</span>)</span><br/>
 <span class="in1"></span><span class="keyword">if</span> (<span class="var">cmd</span> == <span class="str">'x'</span>) {<br/>
@@ -1028,8 +1246,11 @@ clear leading zeros
 <span class="in1"></span>}<br/>
 <span class="macro">@end(<span class="name">command switch</span>)</span><br/>
 </code></div>
+<ul><li>
+<code><span class="var">x</span></code> resets the current address to the start address
+</li></ul>
 </div>
-<div class="page"><div class="slide"><div class="slide-nr">71</div>
+<div class="page"><div class="slide"><div class="slide-nr">82</div>
 <code>
 <span class="macro">@add(<span class="name">command switch</span>)</span><br/>
 <span class="in1"></span><span class="keyword">if</span> (<span class="var">cmd</span> == <span class="str">'d'</span>) {<br/>
@@ -1038,11 +1259,17 @@ clear leading zeros
 <span class="in1"></span>}<br/>
 <span class="macro">@end(<span class="name">command switch</span>)</span><br/>
 </code></div>
+<ul><li>
+disassemble the instruction at the current address
+</li></ul>
 </div>
-<div class="page"><div class="slide"><div class="slide-nr">72</div>
+<div class="page"><div class="slide"><div class="slide-nr">83</div>
 <code>
 <span class="macro">@inc(<span class="name"><a href="disassembler.html">disassembler.md</a></span>)</span><br/>
 </code></div>
+<ul><li>
+the disassembler is written in a different file
+</li></ul>
 </div>
 </body>
 </html>
