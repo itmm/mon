@@ -3,13 +3,18 @@
 HX_SRCs = $(shell hx-srcs.sh)
 SRCs = $(shell hx-files.sh $(HX_SRCs))
 
-CC = clang-9
-CXX = clang++-9
-LD = ld.lld-9
-
-CXXFLAGS += -Wall --pedantic -std=c++17 -Os
 RISCARCH = --target=riscv32 -march=rv32imac
 RISCFLAGS = $(CXXFLAGS) -fno-exceptions $(RISCARCH)
+CC = clang-9 $(RISCARCH)
+CXX = clang++-9
+RCXX = clang++-9 $(RISCFLAGS)
+LD = ld.lld-9
+#TARGET = riscv32-unknown-elf-
+#CC = $(TARGET)gcc
+#RCXX = $(TARGET)c++
+#LD = $(TARGET)ld
+
+CXXFLAGS += -Wall --pedantic -std=c++17 -Os
 
 all: hx_run apps
 
@@ -27,11 +32,11 @@ mon: mon.cpp
 
 init.o: init.s
 	@echo AS $@
-	@$(CC) -Wall -Os $(RISCARCH) -c $^ -o $@
+	@$(CC) -Wall -Os -c $^ -o $@
 
 mon-riscv.o: mon.cpp
 	@echo C++ $@
-	@$(CXX) $(RISCFLAGS) -c $^ -o $@
+	@$(RCXX) -c $^ -o $@
 
 mon-riscv: init.o mon-riscv.o
 	@echo LD $@
